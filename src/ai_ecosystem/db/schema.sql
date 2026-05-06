@@ -1,9 +1,16 @@
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS firms (
-    bvd_id_number TEXT PRIMARY KEY,
-    company_name TEXT,
-    country TEXT,
+    bvd_id TEXT PRIMARY KEY,
+    mark TEXT,
+    firm_name TEXT,
+    postal_code TEXT,
+    city TEXT,
+    nace_code TEXT,
+    raw_url TEXT,
+    normalized_url TEXT,
+    normalized_domain TEXT,
+    email TEXT,
     raw_source_file TEXT,
     imported_at TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -12,15 +19,15 @@ CREATE TABLE IF NOT EXISTS firms (
 
 CREATE TABLE IF NOT EXISTS firm_urls (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    bvd_id_number TEXT NOT NULL,
+    bvd_id TEXT NOT NULL,
     raw_url TEXT,
     normalized_url TEXT,
     domain TEXT,
     is_primary INTEGER DEFAULT 0,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (bvd_id_number) REFERENCES firms(bvd_id_number),
-    UNIQUE(bvd_id_number, normalized_url)
+    FOREIGN KEY (bvd_id) REFERENCES firms(bvd_id),
+    UNIQUE(bvd_id, normalized_url)
 );
 
 CREATE TABLE IF NOT EXISTS domains (
@@ -96,7 +103,7 @@ CREATE TABLE IF NOT EXISTS retrieval_results (
 
 CREATE TABLE IF NOT EXISTS llm_runs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    bvd_id_number TEXT,
+    bvd_id TEXT,
     prompt_version TEXT NOT NULL,
     model_name TEXT,
     model_run_version TEXT NOT NULL,
@@ -105,5 +112,5 @@ CREATE TABLE IF NOT EXISTS llm_runs (
     run_status TEXT DEFAULT 'pending',
     error_message TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (bvd_id_number) REFERENCES firms(bvd_id_number)
+    FOREIGN KEY (bvd_id) REFERENCES firms(bvd_id)
 );

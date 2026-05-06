@@ -1,6 +1,9 @@
 database:
   path: db/ai_ecosystem.sqlite
 
+ingestion:
+  orbis_aurelia_input_path: data/raw/orbis_aurelia/INPUT_FILE_HERE.txt
+
 paths:
   raw_orbis_dir: data/raw/orbis_aurelia
   interim_dir: data/interim

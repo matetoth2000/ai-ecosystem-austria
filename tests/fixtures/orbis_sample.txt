@@ -1,0 +1,6 @@
+"Mark";"Name des Unternehmens";"BvD ID Nummer";"Postleitzahl";"Ort";"ONACE 2008 Haupttätigkeit 4-stellig - Code";"Web Adresse";"E-Mail Adresse"
+"1";"Example Robotics GmbH";"ATFAKE001";"1010";"Wien";"6201";"example-robotics.at";"hello@example-robotics.at"
+"2";"Shared Domain AI GmbH";"ATFAKE002";"4020";"Linz";"6202";"https://www.shared-domain.at/";"info@shared-domain.at"
+"3";"Missing URL Labs GmbH";"ATFAKE003";"8010";"Graz";"7219";"";"contact@missing-url.invalid"
+"4";"Invalid URL GmbH";"ATFAKE004";"5020";"Salzburg";"6311";"not a url";"invalid@example.invalid"
+"5";"Shared Domain Analytics GmbH";"ATFAKE005";"6020";"Innsbruck";"6201";"https://shared-domain.at/services";"analytics@shared-domain.at"
