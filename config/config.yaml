@@ -1,0 +1,13 @@
+database:
+  path: db/ai_ecosystem.sqlite
+
+paths:
+  raw_orbis_dir: data/raw/orbis_aurelia
+  interim_dir: data/interim
+  processed_dir: data/processed
+
+versions:
+  chunking_version: v0_1
+  retrieval_version: v0_1
+  prompt_version: v0_1
+  model_run_version: v0_1

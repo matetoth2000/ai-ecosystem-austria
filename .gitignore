@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.python-version
+*.egg-info/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables and secrets
+.env
+.env.*
+*.key
+*.pem
+
+# Jupyter
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# SQLite / databases
+db/*.sqlite
+db/*.sqlite3
+*.db
+
+# Data directories (NDA-sensitive)
+data/raw/
+data/interim/
+data/processed/
+
+# Model/cache artifacts
+.cache/
+.pytest_cache/
+.mypy_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Coverage
+.coverage
+htmlcov/
