@@ -96,12 +96,12 @@ def normalize_url(raw_url: str | None) -> NormalizedUrl:
 
 
 def read_text_with_fallback(path: Path) -> tuple[str, str]:
-    for encoding in ("utf-8-sig", "cp1252", "latin-1"):
+    for encoding in ("utf-8-sig", "utf-16", "utf-16-le", "cp1252", "latin-1"):
         try:
             return path.read_text(encoding=encoding), encoding
-        except UnicodeDecodeError:
+        except UnicodeError:
             continue
-    raise UnicodeDecodeError("unknown", b"", 0, 1, "Could not decode input file")
+    raise UnicodeError(f"Could not decode input file: {path}")
 
 
 def read_orbis_rows(path: Path) -> list[dict[str, str]]:

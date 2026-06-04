@@ -4,6 +4,33 @@ database:
 ingestion:
   orbis_aurelia_input_path: data/raw/orbis_aurelia/INPUT_FILE_HERE.txt
 
+discovery:
+  pilot_domain_limit: 100
+  max_workers: 20
+
+  pilot_mix:
+    single_firm: 90
+    shared_domain: 8
+    shared_group_or_brand: 2
+
+  max_discovered_urls_per_domain: 200
+  max_retained_candidate_urls_per_domain: 20
+
+  request_timeout_seconds: 15
+  user_agent: "AIAustriaResearchBot/0.1"
+
+  sitemap_url_limit: 20
+  sitemap_timeout_seconds: 5
+  max_sitemap_urls_per_domain: 1000
+
+  homepage_priority: 8
+  ai_priority: 10
+  products_priority: 6
+  careers_priority: 5
+  about_priority: 4
+  news_priority: 3
+  negative_priority: -100
+
 paths:
   raw_orbis_dir: data/raw/orbis_aurelia
   interim_dir: data/interim

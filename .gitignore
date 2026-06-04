@@ -30,7 +30,9 @@ logs/
 
 # SQLite / databases
 db/*.sqlite
+db/*.sqlite-*
 db/*.sqlite3
+db/*.sqlite3-*
 *.db
 
 # Data directories (NDA-sensitive)

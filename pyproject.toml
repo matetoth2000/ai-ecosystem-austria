@@ -8,7 +8,9 @@ version = "0.1.0"
 description = "Mapping the Austrian AI Ecosystem Using Web Data and NLP"
 requires-python = ">=3.11"
 dependencies = [
+    "beautifulsoup4",
     "pyyaml",
+    "requests",
 ]
 
 [tool.setuptools.packages.find]
