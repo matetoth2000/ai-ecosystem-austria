@@ -19,7 +19,13 @@ from urllib.parse import urljoin, urlsplit
 import requests
 from bs4 import BeautifulSoup
 
-from ai_ecosystem.db.init_db import find_project_root, load_config, resolve_database_path, resolve_project_path
+from ai_ecosystem.db.init_db import (
+    ensure_discovered_pages_schema,
+    find_project_root,
+    load_config,
+    resolve_database_path,
+    resolve_project_path,
+)
 from ai_ecosystem.discovery.classification import classify_page_type, is_hard_negative_url
 from ai_ecosystem.discovery.discovery_utils import generate_discovery_run_id, get_sample_domains, utc_now_iso
 from ai_ecosystem.discovery.normalization import (
@@ -65,6 +71,20 @@ class CandidateUrl:
     page_type_guess: str
     url_depth: int
     priority: int
+
+
+@dataclass(frozen=True)
+class RetentionAuditRecord:
+    run_id: str
+    sample_id: str | None
+    domain: str
+    url: str | None
+    normalized_url: str | None
+    discovery_method: str
+    page_type_guess: str | None
+    priority: int | None
+    decision: str
+    discard_reason: str | None
 
 
 @dataclass(frozen=True)
@@ -140,6 +160,27 @@ def ensure_discovery_runs_schema(connection: sqlite3.Connection) -> None:
             connection.execute(statement)
 
 
+def ensure_url_retention_audit_schema(connection: sqlite3.Connection) -> None:
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS url_retention_audit (
+            audit_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            run_id TEXT,
+            sample_id TEXT,
+            domain TEXT NOT NULL,
+            url TEXT,
+            normalized_url TEXT,
+            discovery_method TEXT,
+            page_type_guess TEXT,
+            priority INTEGER,
+            decision TEXT NOT NULL,
+            discard_reason TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+
+
 def format_duration_seconds(started_at: str, completed_at: str) -> str:
     started = datetime.fromisoformat(started_at)
     completed = datetime.fromisoformat(completed_at)
@@ -196,6 +237,7 @@ def write_run_summary_json(
     sample_input_csv: str | None,
     sample_id: str | None,
     max_workers: int,
+    retention_audit_enabled: bool,
     results: list[DomainDiscoveryResult],
     config: dict,
     log_path: Path,
@@ -239,6 +281,7 @@ def write_run_summary_json(
         "completed_at": completed_at,
         "duration_seconds": run_duration_seconds,
         "max_workers": max_workers,
+        "retention_audit_enabled": retention_audit_enabled,
         "domains_per_second": domains_per_second(domains_attempted, run_duration_seconds),
         "sample_input_csv": sample_input_csv,
         "sample_id": sample_id,
@@ -281,6 +324,7 @@ def write_run_summary_json(
             "timeout": int(discovery_config.get("request_timeout_seconds", 15)),
             "max_retained_urls": retained_cap,
             "max_workers": max_workers,
+            "retention_audit_enabled": retention_audit_enabled,
             "user_agent": discovery_config.get("user_agent", "AIAustriaResearchBot/0.1"),
         },
     }
@@ -464,6 +508,147 @@ def is_alias_candidate_url(url: str, original_domain: str) -> bool:
     return not is_internal_url(url, original_domain)
 
 
+def make_audit_record(
+    run_id: str,
+    sample_id: str | None,
+    domain: str,
+    url: str | None,
+    normalized_url: str | None,
+    discovery_method: str,
+    page_type_guess: str | None,
+    priority: int | None,
+    decision: str,
+    discard_reason: str | None,
+) -> RetentionAuditRecord:
+    return RetentionAuditRecord(
+        run_id=run_id,
+        sample_id=sample_id,
+        domain=domain,
+        url=url,
+        normalized_url=normalized_url,
+        discovery_method=discovery_method,
+        page_type_guess=page_type_guess,
+        priority=priority,
+        decision=decision,
+        discard_reason=discard_reason,
+    )
+
+
+def insert_retention_audit_records(
+    connection: sqlite3.Connection,
+    records: Iterable[RetentionAuditRecord],
+) -> None:
+    record_list = list(records)
+    if not record_list:
+        return
+    ensure_url_retention_audit_schema(connection)
+    connection.executemany(
+        """
+        INSERT INTO url_retention_audit (
+            run_id,
+            sample_id,
+            domain,
+            url,
+            normalized_url,
+            discovery_method,
+            page_type_guess,
+            priority,
+            decision,
+            discard_reason
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        [
+            (
+                record.run_id,
+                record.sample_id,
+                record.domain,
+                record.url,
+                record.normalized_url,
+                record.discovery_method,
+                record.page_type_guess,
+                record.priority,
+                record.decision,
+                record.discard_reason,
+            )
+            for record in record_list
+        ],
+    )
+
+
+def append_candidate_selection_audit(
+    audit_records: list[RetentionAuditRecord] | None,
+    run_id: str,
+    sample_id: str | None,
+    domain: str,
+    candidates: Iterable[CandidateUrl],
+    retained_candidates: Iterable[CandidateUrl],
+) -> None:
+    if audit_records is None:
+        return
+    retained_candidate_ids = {id(candidate) for candidate in retained_candidates}
+    for candidate in candidates:
+        retained = id(candidate) in retained_candidate_ids
+        audit_records.append(
+            make_audit_record(
+                run_id,
+                sample_id,
+                domain,
+                candidate.url,
+                candidate.normalized_url,
+                candidate.discovery_method,
+                candidate.page_type_guess,
+                candidate.priority,
+                "retained" if retained else "discarded",
+                None if retained else "retention_cap",
+            )
+        )
+
+
+def candidate_decision_from_url(
+    raw_url: str,
+    domain: str,
+    source_url: str,
+    discovery_method: str,
+    stats: dict[str, int] | None = None,
+    allowed_hosts: set[str] | None = None,
+) -> tuple[CandidateUrl | None, str | None]:
+    raw_query = urlsplit(raw_url).query
+    cleaned_url = remove_tracking_parameters(raw_url)
+    normalized_url = normalize_url(cleaned_url)
+    active_allowed_hosts = allowed_hosts or allowed_discovery_hosts(domain)
+    if not normalized_url:
+        return None, "invalid_url"
+    if not is_allowed_discovery_url(normalized_url, active_allowed_hosts):
+        return None, "external_domain"
+    if stats is not None and is_alias_candidate_url(normalized_url, domain):
+        stats["alias_candidate_urls_accepted"] = stats.get("alias_candidate_urls_accepted", 0) + 1
+    if stats is not None and raw_query and raw_query != urlsplit(normalized_url).query:
+        stats["query_urls_normalized"] = stats.get("query_urls_normalized", 0) + 1
+    if is_asset_or_static_url(normalized_url):
+        if stats is not None:
+            stats["asset_static_urls_filtered"] = stats.get("asset_static_urls_filtered", 0) + 1
+        return None, "asset_static"
+    if is_hard_negative_url(normalized_url):
+        if stats is not None:
+            stats["hard_negative_urls_filtered"] = stats.get("hard_negative_urls_filtered", 0) + 1
+        return None, "hard_negative"
+
+    page_type_guess = classify_page_type(normalized_url)
+    url_depth = compute_url_depth(normalized_url)
+    candidate = CandidateUrl(
+            url=normalized_url,
+            normalized_url=normalized_url,
+            source_domain=extract_domain(source_url) or domain,
+            discovered_from_url=normalize_url(source_url) or source_url,
+            discovery_method=discovery_method,
+            page_type_guess=page_type_guess,
+            url_depth=url_depth,
+            priority=score_candidate_page(page_type_guess, url_depth),
+        )
+    return candidate, None
+
+
 def candidate_from_url(
     raw_url: str,
     domain: str,
@@ -472,37 +657,15 @@ def candidate_from_url(
     stats: dict[str, int] | None = None,
     allowed_hosts: set[str] | None = None,
 ) -> CandidateUrl | None:
-    raw_query = urlsplit(raw_url).query
-    cleaned_url = remove_tracking_parameters(raw_url)
-    normalized_url = normalize_url(cleaned_url)
-    active_allowed_hosts = allowed_hosts or allowed_discovery_hosts(domain)
-    if not normalized_url or not is_allowed_discovery_url(normalized_url, active_allowed_hosts):
-        return None
-    if stats is not None and is_alias_candidate_url(normalized_url, domain):
-        stats["alias_candidate_urls_accepted"] = stats.get("alias_candidate_urls_accepted", 0) + 1
-    if stats is not None and raw_query and raw_query != urlsplit(normalized_url).query:
-        stats["query_urls_normalized"] = stats.get("query_urls_normalized", 0) + 1
-    if is_asset_or_static_url(normalized_url):
-        if stats is not None:
-            stats["asset_static_urls_filtered"] = stats.get("asset_static_urls_filtered", 0) + 1
-        return None
-    if is_hard_negative_url(normalized_url):
-        if stats is not None:
-            stats["hard_negative_urls_filtered"] = stats.get("hard_negative_urls_filtered", 0) + 1
-        return None
-
-    page_type_guess = classify_page_type(normalized_url)
-    url_depth = compute_url_depth(normalized_url)
-    return CandidateUrl(
-        url=normalized_url,
-        normalized_url=normalized_url,
-        source_domain=extract_domain(source_url) or domain,
-        discovered_from_url=normalize_url(source_url) or source_url,
-        discovery_method=discovery_method,
-        page_type_guess=page_type_guess,
-        url_depth=url_depth,
-        priority=score_candidate_page(page_type_guess, url_depth),
+    candidate, _discard_reason = candidate_decision_from_url(
+        raw_url,
+        domain,
+        source_url,
+        discovery_method,
+        stats,
+        allowed_hosts,
     )
+    return candidate
 
 
 def extract_internal_candidate_urls(
@@ -512,6 +675,9 @@ def extract_internal_candidate_urls(
     limit: int | None = None,
     stats: dict[str, int] | None = None,
     allowed_hosts: set[str] | None = None,
+    audit_records: list[RetentionAuditRecord] | None = None,
+    run_id: str | None = None,
+    sample_id: str | None = None,
 ) -> list[CandidateUrl]:
     soup = BeautifulSoup(html, "html.parser")
     candidates: dict[str, CandidateUrl] = {}
@@ -519,10 +685,25 @@ def extract_internal_candidate_urls(
     for anchor in soup.find_all("a", href=True):
         href = anchor.get("href", "")
         if should_discard_href(href):
+            if audit_records is not None and run_id is not None:
+                audit_records.append(
+                    make_audit_record(
+                        run_id,
+                        sample_id,
+                        domain,
+                        href.strip() or None,
+                        None,
+                        "homepage",
+                        None,
+                        None,
+                        "discarded",
+                        "invalid_url",
+                    )
+                )
             continue
 
         absolute_url = urljoin(base_url, href.strip())
-        candidate = candidate_from_url(
+        candidate, discard_reason = candidate_decision_from_url(
             absolute_url,
             domain,
             base_url,
@@ -531,12 +712,43 @@ def extract_internal_candidate_urls(
             allowed_hosts=allowed_hosts,
         )
         if candidate is None:
+            if audit_records is not None and run_id is not None:
+                audit_records.append(
+                    make_audit_record(
+                        run_id,
+                        sample_id,
+                        domain,
+                        absolute_url,
+                        normalize_url(remove_tracking_parameters(absolute_url)),
+                        "homepage",
+                        None,
+                        None,
+                        "discarded",
+                        discard_reason or "other",
+                    )
+                )
             continue
         normalized_url = candidate.normalized_url
         if normalized_url in candidates and stats is not None:
             stats["duplicate_urls_collapsed"] = stats.get("duplicate_urls_collapsed", 0) + 1
             if compute_url_depth(normalized_url) == 0:
                 stats["homepage_variants_collapsed"] = stats.get("homepage_variants_collapsed", 0) + 1
+            if audit_records is not None and run_id is not None:
+                audit_records.append(
+                    make_audit_record(
+                        run_id,
+                        sample_id,
+                        domain,
+                        absolute_url,
+                        normalized_url,
+                        "homepage",
+                        candidate.page_type_guess,
+                        candidate.priority,
+                        "discarded",
+                        "homepage_variant" if compute_url_depth(normalized_url) == 0 else "duplicate",
+                    )
+                )
+            continue
 
         candidates[normalized_url] = candidate
         if limit is not None and len(candidates) >= limit:
@@ -613,6 +825,95 @@ def delete_discovery_candidate_pages_for_domains(
 
 
 delete_homepage_candidate_pages_for_domains = delete_discovery_candidate_pages_for_domains
+
+
+def delete_discovered_pages_for_domains(
+    connection: sqlite3.Connection,
+    domains: list[str],
+) -> int:
+    ensure_discovered_pages_schema(connection)
+    if not domains:
+        return 0
+
+    deleted = 0
+    chunk_size = 900
+    for start in range(0, len(domains), chunk_size):
+        chunk = domains[start : start + chunk_size]
+        placeholders = ", ".join("?" for _ in chunk)
+        cursor = connection.execute(
+            f"""
+            DELETE FROM discovered_pages
+            WHERE discovery_method IN ({", ".join("?" for _ in DISCOVERY_METHODS_TO_REFRESH)})
+              AND domain IN ({placeholders})
+            """,
+            (*DISCOVERY_METHODS_TO_REFRESH, *chunk),
+        )
+        deleted += cursor.rowcount if cursor.rowcount is not None else 0
+    return deleted
+
+
+def upsert_discovered_pages(
+    connection: sqlite3.Connection,
+    domain: str,
+    run_id: str,
+    discovered_at: str,
+    candidates: Iterable[tuple[CandidateUrl, int, str | None]],
+) -> int:
+    ensure_discovered_pages_schema(connection)
+    rows = list(candidates)
+    if not rows:
+        return 0
+    connection.executemany(
+        """
+        INSERT INTO discovered_pages (
+            domain,
+            url,
+            normalized_url,
+            discovery_method,
+            page_type_guess,
+            priority,
+            url_depth,
+            source_domain,
+            discovered_from_url,
+            retained_at_discovery,
+            discard_reason,
+            discovery_run_id,
+            discovered_at,
+            updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(discovery_run_id, domain, normalized_url, discovery_method) DO UPDATE SET
+            url = excluded.url,
+            page_type_guess = excluded.page_type_guess,
+            priority = excluded.priority,
+            url_depth = excluded.url_depth,
+            source_domain = excluded.source_domain,
+            discovered_from_url = excluded.discovered_from_url,
+            retained_at_discovery = excluded.retained_at_discovery,
+            discard_reason = excluded.discard_reason,
+            discovered_at = excluded.discovered_at,
+            updated_at = CURRENT_TIMESTAMP
+        """,
+        [
+            (
+                domain,
+                candidate.url,
+                candidate.normalized_url,
+                candidate.discovery_method,
+                candidate.page_type_guess,
+                candidate.priority,
+                candidate.url_depth,
+                candidate.source_domain,
+                candidate.discovered_from_url,
+                retained_at_discovery,
+                discard_reason,
+                run_id,
+                discovered_at,
+            )
+            for candidate, retained_at_discovery, discard_reason in rows
+        ],
+    )
+    return len(rows)
 
 
 def upsert_candidate_pages(
@@ -780,6 +1081,9 @@ def discover_sitemap_candidates(
     config: dict,
     stats: dict[str, int],
     allowed_hosts: set[str] | None = None,
+    audit_records: list[RetentionAuditRecord] | None = None,
+    run_id: str | None = None,
+    sample_id: str | None = None,
 ) -> list[CandidateUrl]:
     discovery_config = config.get("discovery", {})
     max_sitemap_files = int(discovery_config.get("sitemap_url_limit", 20))
@@ -834,7 +1138,7 @@ def discover_sitemap_candidates(
             if stats.get("sitemap_urls_discovered", 0) >= max_sitemap_urls:
                 break
             stats["sitemap_urls_discovered"] = stats.get("sitemap_urls_discovered", 0) + 1
-            candidate = candidate_from_url(
+            candidate, discard_reason = candidate_decision_from_url(
                 raw_url,
                 domain,
                 fetched.final_url,
@@ -843,9 +1147,39 @@ def discover_sitemap_candidates(
                 allowed_hosts=active_allowed_hosts,
             )
             if candidate is None:
+                if audit_records is not None and run_id is not None:
+                    audit_records.append(
+                        make_audit_record(
+                            run_id,
+                            sample_id,
+                            domain,
+                            raw_url,
+                            normalize_url(remove_tracking_parameters(raw_url)),
+                            "sitemap",
+                            None,
+                            None,
+                            "discarded",
+                            discard_reason or "other",
+                        )
+                    )
                 continue
             if candidate.normalized_url in candidates:
                 stats["duplicate_urls_collapsed"] = stats.get("duplicate_urls_collapsed", 0) + 1
+                if audit_records is not None and run_id is not None:
+                    audit_records.append(
+                        make_audit_record(
+                            run_id,
+                            sample_id,
+                            domain,
+                            raw_url,
+                            candidate.normalized_url,
+                            "sitemap",
+                            candidate.page_type_guess,
+                            candidate.priority,
+                            "discarded",
+                            "duplicate",
+                        )
+                    )
                 continue
             candidates[candidate.normalized_url] = candidate
 
@@ -899,6 +1233,8 @@ def discover_domain_homepage(
     run_id: str,
     config: dict,
     logger: logging.Logger,
+    sample_id: str | None = None,
+    retention_audit_enabled: bool = False,
 ) -> DomainDiscoveryResult:
     discovery_config = config.get("discovery", {})
     timeout_seconds = int(discovery_config.get("request_timeout_seconds", 15))
@@ -917,6 +1253,7 @@ def discover_domain_homepage(
     homepage_candidates: list[CandidateUrl] = []
     active_allowed_hosts = allowed_discovery_hosts(domain)
     redirected_domain = 0
+    audit_records: list[RetentionAuditRecord] | None = [] if retention_audit_enabled else None
 
     try:
         fetched = fetch_homepage(domain, timeout_seconds, user_agent, logger)
@@ -933,6 +1270,9 @@ def discover_domain_homepage(
             limit=max_discovered,
             stats=extraction_stats,
             allowed_hosts=active_allowed_hosts,
+            audit_records=audit_records,
+            run_id=run_id,
+            sample_id=sample_id,
         )
     except Exception as exc:
         error = str(exc)
@@ -965,6 +1305,9 @@ def discover_domain_homepage(
         config,
         extraction_stats,
         allowed_hosts=active_allowed_hosts,
+        audit_records=audit_records,
+        run_id=run_id,
+        sample_id=sample_id,
     )
     if extraction_stats.get("sitemap_successes", 0) > 0:
         sitemap_status = "success"
@@ -972,12 +1315,78 @@ def discover_domain_homepage(
         sitemap_status = "failed"
 
     retained_homepage_candidates = homepage_candidates[:max_retained]
-    retained_sitemap_candidates = [
-        candidate
-        for candidate in sitemap_candidates
-        if candidate.normalized_url not in {item.normalized_url for item in retained_homepage_candidates}
-    ][:max_retained]
+    retained_homepage_normalized_urls = {
+        candidate.normalized_url for candidate in retained_homepage_candidates
+    }
+    sitemap_candidates_after_homepage_dedup: list[CandidateUrl] = []
+    for candidate in sitemap_candidates:
+        if candidate.normalized_url in retained_homepage_normalized_urls:
+            if audit_records is not None:
+                audit_records.append(
+                    make_audit_record(
+                        run_id,
+                        sample_id,
+                        domain,
+                        candidate.url,
+                        candidate.normalized_url,
+                        candidate.discovery_method,
+                        candidate.page_type_guess,
+                        candidate.priority,
+                        "discarded",
+                        "duplicate",
+                    )
+                )
+            continue
+        sitemap_candidates_after_homepage_dedup.append(candidate)
+    retained_sitemap_candidates = sitemap_candidates_after_homepage_dedup[:max_retained]
     retained_candidates = [*retained_homepage_candidates, *retained_sitemap_candidates]
+    retained_homepage_candidate_ids = {id(candidate) for candidate in retained_homepage_candidates}
+    retained_sitemap_candidate_ids = {id(candidate) for candidate in retained_sitemap_candidates}
+    discovered_page_records: list[tuple[CandidateUrl, int, str | None]] = []
+    for candidate in homepage_candidates:
+        retained_at_discovery = int(id(candidate) in retained_homepage_candidate_ids)
+        discovered_page_records.append(
+            (
+                candidate,
+                retained_at_discovery,
+                None if retained_at_discovery else "retention_cap",
+            )
+        )
+    for candidate in sitemap_candidates:
+        if candidate.normalized_url in retained_homepage_normalized_urls:
+            discovered_page_records.append((candidate, 0, "duplicate"))
+            continue
+        retained_at_discovery = int(id(candidate) in retained_sitemap_candidate_ids)
+        discovered_page_records.append(
+            (
+                candidate,
+                retained_at_discovery,
+                None if retained_at_discovery else "retention_cap",
+            )
+        )
+    upsert_discovered_pages(
+        connection,
+        domain,
+        run_id,
+        attempted_at,
+        discovered_page_records,
+    )
+    append_candidate_selection_audit(
+        audit_records,
+        run_id,
+        sample_id,
+        domain,
+        homepage_candidates,
+        retained_homepage_candidates,
+    )
+    append_candidate_selection_audit(
+        audit_records,
+        run_id,
+        sample_id,
+        domain,
+        sitemap_candidates_after_homepage_dedup,
+        retained_sitemap_candidates,
+    )
     retained = upsert_candidate_pages(
         connection,
         domain,
@@ -986,6 +1395,8 @@ def discover_domain_homepage(
         attempted_at,
         retained_candidates,
     )
+    if audit_records is not None:
+        insert_retention_audit_records(connection, audit_records)
     successful_at = attempted_at if homepage_status == "success" else None
     update_domain_status(
         connection,
@@ -1072,11 +1483,21 @@ def discover_domain_homepage_with_new_connection(
     run_id: str,
     config: dict,
     logger: logging.Logger,
+    sample_id: str | None = None,
+    retention_audit_enabled: bool = False,
 ) -> DomainDiscoveryResult:
     with sqlite3.connect(db_path, timeout=60) as connection:
         connection.execute("PRAGMA foreign_keys = ON;")
         ensure_domain_discovery_status_schema(connection)
-        return discover_domain_homepage(connection, domain, run_id, config, logger)
+        return discover_domain_homepage(
+            connection,
+            domain,
+            run_id,
+            config,
+            logger,
+            sample_id=sample_id,
+            retention_audit_enabled=retention_audit_enabled,
+        )
 
 
 def failed_domain_result(domain: str, error: Exception) -> DomainDiscoveryResult:
@@ -1099,6 +1520,7 @@ def run_homepage_discovery(
     input_csv: str | Path | None = None,
     sample_id: str | None = None,
     max_workers: int | None = None,
+    enable_retention_audit: bool = False,
 ) -> str:
     if input_csv and sample_id:
         raise ValueError("Use either input_csv or sample_id, not both.")
@@ -1109,6 +1531,9 @@ def run_homepage_discovery(
     discovery_config = config.get("discovery", {})
     domain_limit = limit or int(discovery_config.get("pilot_domain_limit", 100))
     worker_count = max(1, int(max_workers or discovery_config.get("max_workers", 1)))
+    retention_audit_enabled = bool(
+        enable_retention_audit or discovery_config.get("retention_audit_enabled", False)
+    )
     run_id = generate_discovery_run_id("homepage")
     logger = setup_logging(project_root, run_id)
     log_path = project_root / "logs" / f"discovery_{run_id}.log"
@@ -1120,6 +1545,8 @@ def run_homepage_discovery(
         connection.execute("PRAGMA journal_mode = WAL;")
         ensure_domain_discovery_status_schema(connection)
         ensure_discovery_runs_schema(connection)
+        if retention_audit_enabled:
+            ensure_url_retention_audit_schema(connection)
         if input_csv:
             csv_path = resolve_project_path(project_root, str(input_csv))
             sample_input_csv = str(csv_path)
@@ -1135,9 +1562,11 @@ def run_homepage_discovery(
             notes = "homepage discovery pilot"
 
         if input_csv or sample_id:
+            deleted_discovered_pages = delete_discovered_pages_for_domains(connection, domains)
             deleted_candidates = delete_discovery_candidate_pages_for_domains(connection, domains)
             logger.info(
-                "pilot_refresh_cleanup deleted_candidate_pages=%s domains=%s",
+                "pilot_refresh_cleanup deleted_discovered_pages=%s deleted_candidate_pages=%s domains=%s",
+                deleted_discovered_pages,
                 deleted_candidates,
                 ", ".join(domains),
             )
@@ -1169,7 +1598,15 @@ def run_homepage_discovery(
             print(f"[{index}/{len(domains)}] Processing domain: {domain}")
             logger.info("domain=%s progress index=%s total=%s", domain, index, len(domains))
             try:
-                result = discover_domain_homepage(connection, domain, run_id, config, logger)
+                result = discover_domain_homepage(
+                    connection,
+                    domain,
+                    run_id,
+                    config,
+                    logger,
+                    sample_id=sample_id,
+                    retention_audit_enabled=retention_audit_enabled,
+                )
             except Exception as exc:
                 logger.exception("domain=%s discovery_unhandled_error error=%s", domain, exc)
                 result = failed_domain_result(domain, exc)
@@ -1188,6 +1625,8 @@ def run_homepage_discovery(
                         run_id,
                         config,
                         logger,
+                        sample_id,
+                        retention_audit_enabled,
                     ): domain
                     for domain in domains
                 }
@@ -1297,6 +1736,7 @@ def run_homepage_discovery(
             sample_input_csv=sample_input_csv,
             sample_id=sample_id,
             max_workers=worker_count,
+            retention_audit_enabled=retention_audit_enabled,
             results=results,
             config=config,
             log_path=log_path,
@@ -1353,6 +1793,11 @@ def parse_args() -> argparse.Namespace:
         type=int,
         help="Number of domains to process concurrently.",
     )
+    parser.add_argument(
+        "--enable-retention-audit",
+        action="store_true",
+        help="Record retained and discarded URL decisions for this run.",
+    )
     return parser.parse_args()
 
 
@@ -1363,6 +1808,7 @@ def main() -> None:
         input_csv=args.input_csv,
         sample_id=args.sample_id,
         max_workers=args.max_workers,
+        enable_retention_audit=args.enable_retention_audit,
     )
     print(f"Discovery run complete: {run_id}")
 

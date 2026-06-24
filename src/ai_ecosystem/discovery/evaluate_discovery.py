@@ -46,6 +46,17 @@ def safe_duration_seconds(started_at: str | None, completed_at: str | None) -> f
 def get_candidate_rows(connection: sqlite3.Connection, domains: list[str]) -> list[sqlite3.Row]:
     if not domains:
         return []
+    discovered_rows = connection.execute(
+        f"""
+        SELECT domain, discovery_method, page_type_guess, normalized_url, priority, discovery_run_id
+        FROM discovered_pages
+        WHERE retained_at_discovery = 1
+          AND domain IN ({quote_placeholders(domains)})
+        """,
+        tuple(domains),
+    ).fetchall()
+    if discovered_rows:
+        return discovered_rows
     return connection.execute(
         f"""
         SELECT domain, discovery_method, page_type_guess, normalized_url, priority, discovery_run_id

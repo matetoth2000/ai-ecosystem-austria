@@ -273,3 +273,101 @@ Ignoring redirected hosts caused avoidable coverage losses and missed candidate 
 - Discovery operates on logical website ownership rather than exact hostname matches.
 - Candidate URLs discovered through redirect targets are retained.
 - Coverage improves without requiring browser rendering.
+
+---
+
+## 2026-06-04 — Proceed to content-level analysis after retention audit
+
+### Context
+
+A retention audit was performed on the URL discovery pilot to determine whether the retention strategy was discarding potentially valuable pages.
+
+### Decision
+
+Proceed to Page Acquisition and content-level analysis rather than further refining URL retention heuristics.
+
+### Reasoning
+
+The audit showed:
+
+- Discovery coverage is strong.
+- Filtering removes relatively few URLs.
+- Most discarded URLs result from retention caps and deduplication.
+- AI-related pages are rarely suppressed.
+- The largest remaining uncertainty concerns page content quality rather than URL discovery quality.
+
+### Implications
+
+- Future prioritization should increasingly rely on content signals rather than URL structure.
+- The next milestone will focus on HTML acquisition, metadata extraction, and content inspection.
+- Additional URL heuristic refinement is deferred until content-level evidence suggests it is necessary.
+
+---
+
+## 2026-06-07 — Store compressed raw HTML as the canonical page snapshot
+
+### Context
+
+The project requires reproducible website acquisition while avoiding unnecessary re-fetching of pages that may change over time.
+
+### Decision
+
+Store compressed raw HTML files on disk as the canonical representation of acquired pages and store acquisition metadata in SQLite.
+
+### Reasoning
+
+- Preserves full page content for future processing.
+- Enables reproducibility.
+- Avoids repeated network requests.
+- Supports future improvements to extraction and parsing without reacquiring data.
+
+### Implications
+
+- HTML acquisition and content processing are decoupled.
+- Future processing stages operate on stored HTML snapshots.
+- Raw HTML remains available for debugging and validation.
+
+---
+
+## 2026-06-07 — Proceed to content processing after acquisition validation
+
+### Context
+
+Page acquisition successfully fetched 8,552 pages with an acquisition success rate of 88.6%. Metadata extraction coverage exceeded 99%.
+
+### Decision
+
+Proceed to HTML processing and content preparation without further changes to the acquisition pipeline.
+
+### Reasoning
+
+- Acquisition success is sufficiently high.
+- Failures are dominated by external website issues rather than pipeline defects.
+- Sitemap-discovered pages perform at least as well as homepage-discovered pages.
+- The acquired corpus is large enough for downstream experimentation.
+
+### Implications
+
+- Future effort should focus on content quality rather than acquisition quality.
+- HTML processing becomes the primary bottleneck and area of investigation.
+- Acquisition logic is considered stable for the current project stage.
+
+---
+
+## 2026-06-04 — Pause implementation to redesign evidence retention around content-based scoring
+
+### Context
+
+Discovery and acquisition are working. Page acquisition produced a usable HTML corpus. However, validation and investigation suggest URL-based retention is insufficient for reliably preserving pages useful for AI ecosystem mapping.
+
+### Decision
+
+Pause further implementation before HTML-to-Markdown/chunking and redesign the next stage around content-based page retention.
+
+### Reasoning
+
+The core methodological bottleneck is now evidence selection, not discovery or acquisition. Retention should prioritize pages that describe firm activities, technologies, innovation/R&D, partnerships, capabilities, and ecosystem participation, not only pages that look useful from URLs.
+
+### Implications
+
+The next design milestone will define content extraction, page scoring dimensions, retention policy, and whether embeddings/chunking are needed.

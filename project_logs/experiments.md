@@ -298,3 +298,186 @@ Remaining misses are largely outside discovery logic.
 
 ### Decision
 Browser rendering is not justified at this stage.
+
+---
+
+## 2026-06-04 — Discovery Retention Audit
+
+### Goal
+Evaluate whether the URL retention strategy is discarding potentially valuable pages before starting large-scale page acquisition.
+
+### Dataset
+Latest audited pilot run.
+
+### Results
+
+Discovered URLs:
+- 11,053
+
+Retained URLs:
+- 1,770
+
+Retention rate:
+- 11.9%
+
+Discard reasons:
+
+- retention_cap: 8,642
+- duplicate: 2,725
+- invalid_url: 627
+- external_domain: 576
+- hard_negative: 282
+- asset_static: 144
+- homepage_variant: 126
+
+### Key Findings
+
+#### Filtering is not the primary bottleneck
+
+Only 426 URLs were removed through content-related filtering:
+
+- hard_negative: 282
+- asset_static: 144
+
+Most discarded URLs were removed because of retention caps or deduplication.
+
+#### Retention-cap pressure dominates
+
+Page types discarded due to retention caps:
+
+- unknown: 5,477
+- news: 1,232
+- products: 1,154
+- about: 451
+- careers: 135
+- ai_technology: 43
+
+#### Cap pressure is concentrated
+
+Largest cap-pressure domains:
+
+- sprechen.com: 985
+- museum-joanneum.at: 923
+- bertrandt.com: 794
+- itf-tkd.org: 782
+- consultatio.at: 650
+
+A small number of sitemap-heavy domains account for most cap-related discards.
+
+#### Retained coverage appears healthy
+
+Retained URLs:
+
+- unknown: 1,229
+- products: 151
+- negative: 106
+- about: 101
+- homepage: 88
+
+AI-specific pages discarded due to retention caps:
+
+- ai_technology: 43
+
+#### Classification remains the main weakness
+
+Approximately 69% of retained URLs are classified as unknown.
+
+### Conclusion
+
+The audit does not support the concern that important pages are being randomly filtered out.
+
+Discovery coverage appears strong and filtering behaves conservatively.
+
+The primary limitation is classification coverage and ranking quality, not filtering logic.
+
+### Next Step
+
+Proceed to Page Acquisition and evaluate actual page content quality before investing further effort into URL-level heuristics.
+
+---
+
+## 2026-06-07 — Milestone 3A: Page Acquisition Pilot
+
+### Goal
+Fetch and persist raw HTML pages discovered during URL discovery and evaluate acquisition quality before content processing.
+
+### Dataset
+- Acquisition-eligible URLs: 9,872
+- Fetch scope: discovered pages
+- Pilot sample: pilot_v0_2
+
+### Results
+
+Acquired pages:
+- 8,552
+
+Acquisition success rate:
+- 88.6%
+
+Compressed corpus size:
+- 327 MB
+
+Metadata extraction:
+- title extraction: >99%
+- canonical URL extraction: >99%
+- language detection: >99%
+- word count estimation: >99%
+
+### Failure Analysis
+
+Failures were primarily caused by external web infrastructure issues:
+
+- HTTP errors
+- timeouts
+- SSL failures
+- connection failures
+
+No major pipeline defects were identified.
+
+### Retention Analysis
+
+Acquisition success by discovery status:
+
+- retained pages: 87.5%
+- non-retained pages: 88.8%
+
+Retention status did not materially affect acquisition success.
+
+### Discovery Source Analysis
+
+Sitemap-discovered pages acquired at least as successfully as homepage-discovered pages.
+
+### Conclusion
+
+The acquisition pipeline successfully produced a large and reproducible HTML corpus.
+
+The resulting corpus appears suitable for downstream HTML processing, content extraction, and retrieval experiments.
+
+### Next Step
+
+Proceed to Milestone 3B: HTML processing and content preparation.
+
+---
+
+## 2026-06-04 — Post-acquisition methodological review
+
+### Context
+
+Milestone 3A acquisition succeeded:
+
+- 9,872 acquisition-eligible URLs
+- 8,552 acquired pages
+- 88.6% success rate
+- 327 MB compressed HTML corpus
+
+### Main Finding
+
+Discovery and acquisition are no longer the main bottlenecks.
+
+### New Concern
+
+URL-retained pages are useful for firm profiling, but may not always preserve pages useful for technology, innovation, partnership, or ecosystem evidence.
+
+### Conclusion
+
+Further implementation should be paused until a content-based retention strategy is designed.

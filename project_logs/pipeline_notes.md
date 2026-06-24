@@ -160,3 +160,61 @@ Rationale:
 - Supports multiple concurrent evaluation samples
 
 CSV files remain useful for import/export and sharing, but the database registry is the authoritative source of sample membership.
+
+---
+
+## Important methodological clarification
+
+The purpose of URL retention is not to maximize AI signal capture.
+
+The purpose of URL retention is to maximize retention of pages that describe the firm's actual activities, products, services, technologies, capabilities, and strategic positioning.
+
+AI classification is a downstream task performed on the retained content.
+
+Retention quality should therefore be evaluated primarily on firm-relevance and business descriptiveness rather than AI keyword prevalence.
+
+---
+
+## Milestone 3A Outcome
+
+Acquisition corpus:
+
+- 8,552 HTML pages
+- 327 MB compressed storage
+- 88.6% acquisition success rate
+
+Acquisition quality is considered sufficient for downstream content processing.
+
+Future evaluation should focus on:
+
+- HTML cleaning quality
+- Markdown conversion quality
+- Boilerplate removal
+- Language handling
+- Chunking strategy
+- Retrieval effectiveness
+
+Acquisition is no longer considered a major project risk.
+
+---
+
+## 2026-06-04 — Current methodological direction
+
+The pipeline direction is shifting from URL-based retention toward content-based retention.
+
+URL discovery and acquisition remain useful as broad evidence gathering stages.
+
+The next stage should likely be:
+
+HTML -> main-content extraction -> page feature extraction -> multi-dimensional content scoring -> retained firm evidence package -> final LLM extraction.
+
+Candidate content dimensions:
+
+- firm activity descriptiveness
+- technology/AI specificity
+- innovation/R&D evidence
+- partnership/ecosystem evidence
+- page quality/informational density
+- structural/site importance
+
+No further implementation should proceed until this content-retention design is locked.

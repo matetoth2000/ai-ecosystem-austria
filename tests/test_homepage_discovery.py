@@ -553,6 +553,160 @@ class HomepageDiscoveryTest(unittest.TestCase):
             self.assertEqual(summary["config"]["user_agent"], "TestBot/0.1")
             self.assertEqual(summary["top_failure_categories"], [{"category": "unknown", "count": 1}])
 
+    def test_run_homepage_discovery_retention_audit_is_optional(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            project_root = Path(tmp_dir)
+            (project_root / "config").mkdir()
+            (project_root / "db").mkdir()
+            (project_root / "logs").mkdir()
+            (project_root / "data" / "interim").mkdir(parents=True)
+            (project_root / "config" / "config.yaml").write_text(
+                "\n".join(
+                    [
+                        "database:",
+                        "  path: db/test.sqlite",
+                        "discovery:",
+                        "  max_discovered_urls_per_domain: 20",
+                        "  max_retained_candidate_urls_per_domain: 20",
+                        "  retention_audit_enabled: false",
+                        "  request_timeout_seconds: 1",
+                        "  user_agent: TestBot/0.1",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            sample_csv = project_root / "data" / "interim" / "sample.csv"
+            sample_csv.write_text("\n".join(["domain", "success.example"]), encoding="utf-8")
+            db_path = init_database(project_root)
+            with sqlite3.connect(db_path) as connection:
+                connection.execute("INSERT INTO domains (domain) VALUES ('success.example')")
+
+            def fake_fetch_homepage(domain, timeout_seconds, user_agent, logger, retries=1):
+                return FetchedHomepage(
+                    requested_url="https://success.example",
+                    final_url="https://success.example/",
+                    status_code=200,
+                    html=FAKE_HTML.replace("example.at", "success.example"),
+                    page_title="Success Example",
+                )
+
+            with (
+                patch("ai_ecosystem.discovery.homepage_discovery.find_project_root", return_value=project_root),
+                patch(
+                    "ai_ecosystem.discovery.homepage_discovery.generate_discovery_run_id",
+                    side_effect=["no_audit_run", "audit_run"],
+                ),
+                patch("ai_ecosystem.discovery.homepage_discovery.fetch_homepage", side_effect=fake_fetch_homepage),
+                patch(
+                    "ai_ecosystem.discovery.homepage_discovery.discover_robots_txt_for_hosts",
+                    return_value=("https://success.example/robots.txt", [], None, 1, 0),
+                ),
+                patch("ai_ecosystem.discovery.homepage_discovery.discover_sitemap_candidates", return_value=[]),
+            ):
+                run_homepage_discovery(input_csv=sample_csv)
+                with sqlite3.connect(db_path) as connection:
+                    audit_count = connection.execute("SELECT COUNT(*) FROM url_retention_audit").fetchone()[0]
+                self.assertEqual(audit_count, 0)
+
+                run_homepage_discovery(input_csv=sample_csv, enable_retention_audit=True)
+
+            with sqlite3.connect(db_path) as connection:
+                decision_counts = dict(
+                    connection.execute(
+                        """
+                        SELECT decision, COUNT(*)
+                        FROM url_retention_audit
+                        GROUP BY decision
+                        """
+                    ).fetchall()
+                )
+                discard_reasons = dict(
+                    connection.execute(
+                        """
+                        SELECT discard_reason, COUNT(*)
+                        FROM url_retention_audit
+                        WHERE decision = 'discarded'
+                        GROUP BY discard_reason
+                        """
+                    ).fetchall()
+                )
+                candidate_count = connection.execute("SELECT COUNT(*) FROM candidate_pages").fetchone()[0]
+
+            self.assertEqual(candidate_count, 3)
+            self.assertEqual(decision_counts["retained"], 3)
+            self.assertGreaterEqual(decision_counts["discarded"], 1)
+            self.assertEqual(discard_reasons["duplicate"], 1)
+            self.assertEqual(discard_reasons["external_domain"], 1)
+
+    def test_run_homepage_discovery_populates_discovered_pages_before_retention_cap(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            project_root = Path(tmp_dir)
+            (project_root / "config").mkdir()
+            (project_root / "db").mkdir()
+            (project_root / "logs").mkdir()
+            (project_root / "data" / "interim").mkdir(parents=True)
+            (project_root / "config" / "config.yaml").write_text(
+                "\n".join(
+                    [
+                        "database:",
+                        "  path: db/test.sqlite",
+                        "discovery:",
+                        "  max_discovered_urls_per_domain: 20",
+                        "  max_retained_candidate_urls_per_domain: 1",
+                        "  retention_audit_enabled: false",
+                        "  request_timeout_seconds: 1",
+                        "  user_agent: TestBot/0.1",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            sample_csv = project_root / "data" / "interim" / "sample.csv"
+            sample_csv.write_text("\n".join(["domain", "example.at"]), encoding="utf-8")
+            db_path = init_database(project_root)
+            with sqlite3.connect(db_path) as connection:
+                connection.execute("INSERT INTO domains (domain) VALUES ('example.at')")
+
+            def fake_fetch_homepage(domain, timeout_seconds, user_agent, logger, retries=1):
+                return FetchedHomepage(
+                    requested_url="https://example.at",
+                    final_url="https://example.at/",
+                    status_code=200,
+                    html=FAKE_HTML,
+                    page_title="Example GmbH",
+                )
+
+            with (
+                patch("ai_ecosystem.discovery.homepage_discovery.find_project_root", return_value=project_root),
+                patch("ai_ecosystem.discovery.homepage_discovery.generate_discovery_run_id", return_value="discovered_run"),
+                patch("ai_ecosystem.discovery.homepage_discovery.fetch_homepage", side_effect=fake_fetch_homepage),
+                patch(
+                    "ai_ecosystem.discovery.homepage_discovery.discover_robots_txt_for_hosts",
+                    return_value=("https://example.at/robots.txt", [], None, 1, 0),
+                ),
+                patch("ai_ecosystem.discovery.homepage_discovery.discover_sitemap_candidates", return_value=[]),
+            ):
+                run_homepage_discovery(input_csv=sample_csv)
+
+            with sqlite3.connect(db_path) as connection:
+                candidate_count = connection.execute("SELECT COUNT(*) FROM candidate_pages").fetchone()[0]
+                discovered_rows = connection.execute(
+                    """
+                    SELECT normalized_url, page_type_guess, priority, retained_at_discovery, discard_reason
+                    FROM discovered_pages
+                    ORDER BY retained_at_discovery DESC, normalized_url
+                    """
+                ).fetchall()
+
+            self.assertEqual(candidate_count, 1)
+            self.assertEqual(len(discovered_rows), 3)
+            self.assertEqual(discovered_rows[0][3], 1)
+            self.assertIsNone(discovered_rows[0][4])
+            self.assertEqual(discovered_rows[1][3], 0)
+            self.assertEqual(discovered_rows[1][4], "retention_cap")
+            self.assertEqual(discovered_rows[2][3], 0)
+            self.assertEqual(discovered_rows[2][4], "retention_cap")
+            self.assertIn(("https://example.at/about", "about", 4, 1, None), discovered_rows)
+
 
 if __name__ == "__main__":
     unittest.main()

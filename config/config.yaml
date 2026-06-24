@@ -4,6 +4,28 @@ database:
 ingestion:
   orbis_aurelia_input_path: data/raw/orbis_aurelia/INPUT_FILE_HERE.txt
 
+acquisition:
+  fetch_scope: discovered
+  timeout_seconds: 15
+  retry_count: 2
+  max_workers: 20
+  skip_existing: true
+  force_refresh: false
+  progress_log_every_n_pages: 25
+
+validation:
+  enabled: false
+  model: gpt-5-mini
+  temperature: 0
+  max_input_chars: 4000
+  smoke_sample_size_per_group: 5
+  main_sample_size_per_group: 300
+  max_pages_per_domain: 3
+  prompt_version: v2
+  random_seed: 20260608
+  retry_count: 2
+  request_timeout_seconds: 60
+
 discovery:
   pilot_domain_limit: 100
   max_workers: 20
@@ -15,6 +37,7 @@ discovery:
 
   max_discovered_urls_per_domain: 200
   max_retained_candidate_urls_per_domain: 20
+  retention_audit_enabled: false
 
   request_timeout_seconds: 15
   user_agent: "AIAustriaResearchBot/0.1"

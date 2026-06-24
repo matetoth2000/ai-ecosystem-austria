@@ -113,25 +113,224 @@ CREATE TABLE IF NOT EXISTS candidate_pages (
     UNIQUE(domain, normalized_url)
 );
 
-CREATE TABLE IF NOT EXISTS scraped_pages (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    candidate_page_id INTEGER,
+CREATE TABLE IF NOT EXISTS discovered_pages (
+    discovered_page_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    domain TEXT NOT NULL,
     url TEXT NOT NULL,
+    normalized_url TEXT NOT NULL,
+    discovery_method TEXT,
+    page_type_guess TEXT,
+    priority INTEGER,
+    url_depth INTEGER,
+    source_domain TEXT,
+    discovered_from_url TEXT,
+    retained_at_discovery INTEGER DEFAULT 0,
+    discard_reason TEXT,
+    discovery_run_id TEXT NOT NULL DEFAULT 'historical_backfill',
+    discovered_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (domain) REFERENCES domains(domain)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_discovered_pages_run_domain_url_method
+ON discovered_pages(discovery_run_id, domain, normalized_url, discovery_method);
+
+CREATE INDEX IF NOT EXISTS idx_discovered_pages_domain_url
+ON discovered_pages(domain, normalized_url);
+
+CREATE INDEX IF NOT EXISTS idx_discovered_pages_run_retained
+ON discovered_pages(discovery_run_id, retained_at_discovery);
+
+CREATE INDEX IF NOT EXISTS idx_discovered_pages_domain_run
+ON discovered_pages(domain, discovery_run_id);
+
+CREATE TABLE IF NOT EXISTS url_retention_audit (
+    audit_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id TEXT,
+    sample_id TEXT,
+    domain TEXT NOT NULL,
+    url TEXT,
+    normalized_url TEXT,
+    discovery_method TEXT,
+    page_type_guess TEXT,
+    priority INTEGER,
+    decision TEXT NOT NULL,
+    discard_reason TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS scraped_pages (
+    scraped_page_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    candidate_page_id INTEGER,
+    discovered_page_id INTEGER,
+    url TEXT NOT NULL,
+    final_url TEXT,
     domain TEXT,
     http_status INTEGER,
     content_type TEXT,
+    content_length INTEGER,
     fetched_at TEXT,
     html_path TEXT,
-    markdown_path TEXT,
     scrape_status TEXT DEFAULT 'pending',
     error_message TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
     title TEXT,
+    meta_description TEXT,
+    canonical_url TEXT,
     language TEXT,
-    word_count INTEGER,
+    word_count_estimate INTEGER,
+    redirect_count INTEGER,
+    retained_at_discovery INTEGER,
+    acquisition_run_id TEXT,
+    FOREIGN KEY (candidate_page_id) REFERENCES candidate_pages(id),
+    FOREIGN KEY (discovered_page_id) REFERENCES discovered_pages(discovered_page_id)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_scraped_pages_candidate_page_id
+ON scraped_pages(candidate_page_id);
+
+CREATE TABLE IF NOT EXISTS acquisition_runs (
+    acquisition_run_id TEXT PRIMARY KEY,
+    sample_id TEXT,
+    fetch_scope TEXT,
+    started_at TEXT,
+    completed_at TEXT,
+    pages_attempted INTEGER,
+    pages_fetched INTEGER,
+    pages_failed INTEGER,
+    success_rate REAL,
+    notes TEXT
+);
+
+CREATE TABLE IF NOT EXISTS retention_validation_runs (
+    run_id TEXT PRIMARY KEY,
+    sample_id TEXT,
+    sample_type TEXT,
+    model_name TEXT,
+    prompt_version TEXT,
+    pages_selected INTEGER,
+    pages_completed INTEGER,
+    pages_failed INTEGER,
+    estimated_input_chars INTEGER,
+    input_tokens INTEGER,
+    output_tokens INTEGER,
+    total_tokens INTEGER,
+    started_at TEXT,
+    completed_at TEXT,
+    status TEXT,
+    error_message TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_retention_validation_runs_status_started
+ON retention_validation_runs(status, started_at);
+
+CREATE TABLE IF NOT EXISTS retention_validation_results (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sample_id TEXT,
+    validation_run_id TEXT,
+    scraped_page_id INTEGER,
+    candidate_page_id INTEGER,
+    domain TEXT,
+    url TEXT,
+    retained_at_discovery INTEGER,
+    page_type_guess TEXT,
+    prompt_version TEXT,
+    model_name TEXT,
+    input_chars INTEGER,
+    output_json TEXT,
+    firm_relevance_score REAL,
+    firm_relevance_label TEXT,
+    page_category_llm TEXT,
+    keep_for_firm_profile TEXT,
+    reason_short TEXT,
+    evidence_snippet TEXT,
+    language TEXT,
+    ecosystem_relevance_score REAL,
+    ecosystem_relevance_label TEXT,
+    ai_ecosystem_role TEXT,
+    ai_evidence_strength TEXT,
+    ai_relevance_reason TEXT,
+    run_status TEXT DEFAULT 'pending',
+    error_message TEXT,
+    input_tokens INTEGER,
+    output_tokens INTEGER,
+    total_tokens INTEGER,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (scraped_page_id) REFERENCES scraped_pages(scraped_page_id),
     FOREIGN KEY (candidate_page_id) REFERENCES candidate_pages(id)
 );
+
+CREATE INDEX IF NOT EXISTS idx_retention_validation_results_scraped_page_id
+ON retention_validation_results(scraped_page_id);
+
+CREATE INDEX IF NOT EXISTS idx_retention_validation_results_candidate_page_id
+ON retention_validation_results(candidate_page_id);
+
+CREATE INDEX IF NOT EXISTS idx_retention_validation_results_domain
+ON retention_validation_results(domain);
+
+CREATE INDEX IF NOT EXISTS idx_retention_validation_results_status_created
+ON retention_validation_results(run_status, created_at);
+
+CREATE TABLE IF NOT EXISTS retention_validation_sample (
+    sample_id TEXT NOT NULL,
+    sample_version TEXT,
+    sample_type TEXT NOT NULL,
+    scraped_page_id INTEGER NOT NULL,
+    discovered_page_id INTEGER NOT NULL,
+    candidate_page_id INTEGER,
+    domain TEXT NOT NULL,
+    url TEXT NOT NULL,
+    retained_at_discovery INTEGER NOT NULL,
+    page_type_guess TEXT,
+    priority INTEGER,
+    discovery_method TEXT,
+    selection_reason TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (scraped_page_id) REFERENCES scraped_pages(scraped_page_id),
+    FOREIGN KEY (discovered_page_id) REFERENCES discovered_pages(discovered_page_id),
+    FOREIGN KEY (candidate_page_id) REFERENCES candidate_pages(id),
+    UNIQUE(sample_id, scraped_page_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_retention_validation_sample_retained
+ON retention_validation_sample(sample_id, retained_at_discovery);
+
+CREATE INDEX IF NOT EXISTS idx_retention_validation_sample_domain
+ON retention_validation_sample(sample_id, domain);
+
+CREATE INDEX IF NOT EXISTS idx_retention_validation_sample_page_type
+ON retention_validation_sample(sample_id, page_type_guess);
+
+CREATE INDEX IF NOT EXISTS idx_retention_validation_sample_discovered_page_id
+ON retention_validation_sample(discovered_page_id);
+
+CREATE TABLE IF NOT EXISTS retention_validation_inputs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sample_id TEXT NOT NULL,
+    scraped_page_id INTEGER NOT NULL,
+    discovered_page_id INTEGER NOT NULL,
+    domain TEXT NOT NULL,
+    url TEXT NOT NULL,
+    title TEXT,
+    meta_description TEXT,
+    page_type_guess TEXT,
+    retained_at_discovery INTEGER NOT NULL,
+    visible_text_length INTEGER,
+    preview_char_count INTEGER,
+    visible_text_preview TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (scraped_page_id) REFERENCES scraped_pages(scraped_page_id),
+    FOREIGN KEY (discovered_page_id) REFERENCES discovered_pages(discovered_page_id),
+    UNIQUE(sample_id, scraped_page_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_retention_validation_inputs_sample_id
+ON retention_validation_inputs(sample_id);
+
+CREATE INDEX IF NOT EXISTS idx_retention_validation_inputs_discovered_page_id
+ON retention_validation_inputs(discovered_page_id);
 
 CREATE TABLE IF NOT EXISTS external_links (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -142,7 +341,7 @@ CREATE TABLE IF NOT EXISTS external_links (
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     target_bvd_id TEXT,
     edge_type TEXT DEFAULT 'hyperlink',
-    FOREIGN KEY (scraped_page_id) REFERENCES scraped_pages(id)
+    FOREIGN KEY (scraped_page_id) REFERENCES scraped_pages(scraped_page_id)
 );
 
 CREATE TABLE IF NOT EXISTS markdown_chunks (
@@ -153,7 +352,7 @@ CREATE TABLE IF NOT EXISTS markdown_chunks (
     chunk_text TEXT NOT NULL,
     token_count INTEGER,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (scraped_page_id) REFERENCES scraped_pages(id),
+    FOREIGN KEY (scraped_page_id) REFERENCES scraped_pages(scraped_page_id),
     UNIQUE(scraped_page_id, chunking_version, chunk_index)
 );
 
