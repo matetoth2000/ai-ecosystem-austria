@@ -481,3 +481,25 @@ URL-retained pages are useful for firm profiling, but may not always preserve pa
 ### Conclusion
 
 Further implementation should be paused until a content-based retention strategy is designed.
+
+---
+
+## 2026-07-08 — Milestone 3B Extraction QA Review
+
+### Objective
+Evaluate whether the HTML-to-Markdown extraction stage is sufficiently robust to support downstream content scoring.
+
+### Results
+- Successfully extracted 599 of 600 sampled pages (99.83% success rate).
+- Trafilatura produced usable markdown and plain-text representations for nearly all pages.
+- Page-level metadata, links, and evidence packages were generated successfully.
+- Extraction QA indicates realistic distributions of page length, headings, languages, and links.
+
+### Key observations
+- Many extracted pages are short (<100 words), reflecting a mix of genuine low-content pages and template-heavy websites.
+- Many pages contain no explicit headings, which is common for modern CMS-generated sites.
+- Duplicate content groups exist and should be considered during later evidence scoring.
+- No systemic extraction failures or widespread empty outputs were observed.
+
+### Conclusion
+The extraction pipeline is considered sufficiently robust for downstream semantic validation and content-scoring development. Further extraction optimization is deferred unless later scoring experiments reveal systematic evidence loss.

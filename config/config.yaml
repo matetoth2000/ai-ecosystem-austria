@@ -13,6 +13,13 @@ acquisition:
   force_refresh: false
   progress_log_every_n_pages: 25
 
+extraction:
+  extraction_version: v1
+  output_root: data/extracted
+  markdown_directory: markdown
+  text_directory: text
+  overwrite_existing: false
+
 validation:
   enabled: false
   model: gpt-5-mini

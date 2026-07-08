@@ -1,0 +1,937 @@
+version: v1
+
+ecosystem:
+  strategic_partnerships:
+    bm25_queries:
+      - "We entered a strategic partnership with a named technology or industry partner."
+      - "Our long-term partner supports a joint roadmap and co-developed offering."
+      - "We signed a framework agreement or memorandum of understanding with our alliance partner."
+      - "Our preferred partner and we jointly bring solutions to market."
+      - "Wir haben eine strategische Partnerschaft mit einem Technologie- oder Industriepartner geschlossen."
+      - "Unsere langfristige Partnerschaft unterstützt eine gemeinsame Roadmap und gemeinsame Lösungen."
+      - "Wir haben eine Rahmenvereinbarung oder Absichtserklärung mit unserem Allianzpartner unterzeichnet."
+      - "Mit unserem Kooperationspartner bearbeiten wir Märkte und Angebote gemeinsam."
+    keywords:
+      en:
+        - alliance
+        - alliance partner
+        - collaboration
+        - cooperation
+        - co-developed
+        - co-innovation
+        - framework agreement
+        - joint go-to-market
+        - joint roadmap
+        - long-term partner
+        - memorandum of understanding
+        - partner
+        - partnership
+        - preferred partner
+        - strategic partnership
+      de:
+        - absichtserklärung
+        - allianz
+        - gemeinsam
+        - gemeinsame marktbearbeitung
+        - innovationspartnerschaft
+        - kooperation
+        - kooperationsagenda
+        - kooperationspartner
+        - kooperationsvereinbarung
+        - langfristige partnerschaft
+        - partner
+        - partnerschaft
+        - rahmenvereinbarung
+        - rahmenvertrag
+        - strategische partnerschaft
+    boost_terms:
+      en:
+        - alliance
+        - co-developed
+        - co-innovation
+        - framework
+        - joint roadmap
+        - long-term
+        - named organisation
+        - strategic
+      de:
+        - allianz
+        - gemeinsam
+        - kooperationsagenda
+        - langfristig
+        - namentlich genannte organisation
+        - rahmenvertrag
+        - strategisch
+    negative_terms:
+      en:
+        - careers partner
+        - law partner
+        - leadership partner
+        - logo wall without explanatory text
+        - partner in hr context
+        - recruiting partner
+      de:
+        - karrierepartner
+        - partner im hr-kontext
+        - partnerrolle in kanzlei
+        - recruiting partner
+        - reine logo-wand ohne erklärtext
+
+  research_collaboration:
+    bm25_queries:
+      - "We collaborate with external partners on applied research and joint development."
+      - "Our research cooperation develops prototypes, algorithms, datasets and validation results."
+      - "We run collaborative research projects with named companies, labs or institutes."
+      - "Our development partner contributes to experiments, demonstrators and publications."
+      - "Wir arbeiten mit externen Partnern an angewandter Forschung und gemeinsamer Entwicklung."
+      - "Unsere Forschungskooperation entwickelt Prototypen, Algorithmen, Datensätze und Validierung."
+      - "Wir führen kooperative Forschungsprojekte mit Unternehmen, Laboren oder Instituten durch."
+      - "Unser Entwicklungspartner unterstützt Versuche, Demonstratoren und Publikationen."
+    keywords:
+      en:
+        - applied research collaboration
+        - co-development
+        - collaborative research
+        - collaboration
+        - development partner
+        - joint development
+        - joint research
+        - r&d partnership
+        - research
+        - research collaboration
+        - research partner
+        - research project
+      de:
+        - anwendungsorientierte forschung
+        - entwicklungskooperation
+        - entwicklungspartner
+        - f&e
+        - f&e-kooperation
+        - forschung
+        - forschungskooperation
+        - forschungsprojekt
+        - gemeinsame forschung
+        - kooperation
+        - kooperative forschung
+        - fue
+    boost_terms:
+      en:
+        - algorithm
+        - dataset
+        - demonstrator
+        - experiment
+        - external organisation
+        - named project
+        - prototype
+        - publication
+        - validation
+      de:
+        - algorithmus
+        - datensatz
+        - demonstrator
+        - externe organisation
+        - namentlich genanntes projekt
+        - prototyp
+        - publikation
+        - validierung
+        - versuch
+    negative_terms:
+      en:
+        - internal research only
+        - market research
+        - no external actor
+        - research without partner
+      de:
+        - forschung ohne partner
+        - interne forschung
+        - keine externe organisation
+        - marktforschung
+
+  university_research_institute_links:
+    bm25_queries:
+      - "We collaborate with universities, research institutes and academic partners."
+      - "Our scientific partner is a named university, institute, faculty or research centre."
+      - "We work with TU Wien, AIT, FH partners or applied-sciences institutions."
+      - "Our university partnership gives access to labs, datasets, methods and scientific expertise."
+      - "Wir kooperieren mit Universitäten, Fachhochschulen und Forschungseinrichtungen."
+      - "Unser wissenschaftlicher Partner ist eine Universität, ein Institut oder ein Forschungszentrum."
+      - "Wir arbeiten mit TU Wien, AIT, FH-Partnern oder außeruniversitären Instituten."
+      - "Unsere Universitätskooperation verbindet Labore, Daten, Methoden und wissenschaftliche Expertise."
+    keywords:
+      en:
+        - academic partner
+        - academy
+        - ait
+        - applied sciences
+        - centre
+        - chair
+        - faculty
+        - fh
+        - in collaboration with university
+        - institute
+        - lab
+        - professor
+        - research centre
+        - research institute
+        - scientific partner
+        - tu wien
+        - university
+        - university partner
+      de:
+        - ait
+        - außeruniversitär
+        - fachhochschule
+        - fh
+        - forschungsinstitut
+        - forschungspartner
+        - forschungszentrum
+        - hochschule
+        - in zusammenarbeit mit der universität
+        - institut
+        - kompetenzzentrum
+        - labor
+        - lehrstuhl
+        - mit dem institut
+        - professor
+        - tu wien
+        - universität
+        - universitätskooperation
+        - wissenschaftlicher partner
+        - zentrum
+    boost_terms:
+      en:
+        - academic domain
+        - institute for
+        - named university
+        - professor
+        - research centre
+        - university name
+      de:
+        - akademische domain
+        - forschungszentrum
+        - institutsname
+        - namentlich genannte universität
+        - professor
+        - universitätsname
+    negative_terms:
+      en:
+        - company institute
+        - internal lab
+        - institute as department
+        - lab without external name
+      de:
+        - internes labor
+        - institut als abteilung
+        - unternehmensinstitut
+        - labor ohne externe organisation
+
+  joint_labs_shared_infrastructure:
+    bm25_queries:
+      - "We operate a joint lab or shared facility together with external partners."
+      - "Our competence centre, testbed or living lab supports collaborative experimentation."
+      - "We established a research platform or demonstration centre with partner organisations."
+      - "Our shared infrastructure provides pilot sites, test environments and experimentation facilities."
+      - "Wir betreiben ein gemeinsames Labor oder eine gemeinsame Infrastruktur mit Partnern."
+      - "Unser Kompetenzzentrum, Testbed oder Living Lab unterstützt gemeinsame Erprobung."
+      - "Wir haben eine Forschungsplattform oder ein Demonstrationszentrum mit Partnerorganisationen aufgebaut."
+      - "Unsere gemeinsame Infrastruktur bietet Pilotstandorte, Testumgebungen und Experimentiereinrichtungen."
+    keywords:
+      en:
+        - co-location centre
+        - competence centre
+        - demo centre
+        - facility
+        - innovation centre
+        - joint lab
+        - joint laboratory
+        - living lab
+        - pilot site
+        - research platform
+        - shared facility
+        - shared infrastructure
+        - test and experimentation
+        - testbed
+      de:
+        - demonstrationszentrum
+        - forschungsplattform
+        - gemeinsame infrastruktur
+        - gemeinsames labor
+        - infrastruktur
+        - kompetenzzentrum
+        - living lab
+        - pilotstandort
+        - reallabor
+        - test- und experimentierumgebung
+        - testbed
+    boost_terms:
+      en:
+        - establish
+        - facility
+        - infrastructure
+        - operate
+        - permanent
+        - together with
+      de:
+        - dauerhaft
+        - eingerichtet
+        - gemeinsam
+        - infrastruktur
+        - betreiben
+        - eröffnet
+    negative_terms:
+      en:
+        - generic lab branding
+        - generic platform branding
+        - lab without partner
+        - platform without partner
+      de:
+        - generisches lab-branding
+        - generisches plattform-branding
+        - labor ohne partner
+        - plattform ohne partner
+
+  funded_project_participation:
+    bm25_queries:
+      - "We are a coordinator, beneficiary or project partner in a Horizon Europe consortium."
+      - "Our FFG, COMET, Christian Doppler or Josef Ressel project includes company and scientific partners."
+      - "We participate in a funded project with work packages, deliverables and partner lists."
+      - "Our consortium role is described as company partner, scientific partner or project coordinator."
+      - "Wir sind Koordinator, Begünstigter oder Projektpartner in einem Horizon-Europe-Konsortium."
+      - "Unser FFG-, COMET-, Christian-Doppler- oder Josef-Ressel-Projekt umfasst Unternehmenspartner und wissenschaftliche Partner."
+      - "Wir beteiligen uns an einem Förderprojekt mit Arbeitspaketen, Deliverables und Partnerlisten."
+      - "Unsere Rolle im Konsortium ist Konsortialführer, Unternehmenspartner oder wissenschaftlicher Partner."
+    keywords:
+      en:
+        - beneficiary
+        - company partner
+        - consortium
+        - consortium partner
+        - coordinator
+        - deliverable
+        - ffg
+        - funded
+        - funded project
+        - grant
+        - grant agreement
+        - horizon europe project
+        - project
+        - project consortium
+        - project coordinator
+        - project partner
+        - scientific partner
+        - work package
+      de:
+        - arbeitspaket
+        - begünstigter
+        - comet
+        - deliverable
+        - ffg
+        - förderprojekt
+        - gefördert
+        - gefördert durch
+        - horizon-europe-projekt
+        - kooperationsprojekt
+        - koordinator
+        - konsortialführer
+        - konsortialpartner
+        - konsortium
+        - projekt
+        - projektkonsortium
+        - projektpartner
+        - unternehmenspartner
+        - wissenschaftlicher partner
+    boost_terms:
+      en:
+        - associated partner
+        - beneficiary
+        - christian doppler
+        - comet
+        - company partner
+        - cordis
+        - eic
+        - eureka
+        - eurostars
+        - ffg
+        - grant agreement
+        - horizon europe
+        - josef ressel
+        - partner list
+        - scientific partner
+      de:
+        - assoziierter partner
+        - cd-labor
+        - comet
+        - cordis
+        - eic
+        - eureka
+        - eurostars
+        - ffg
+        - förderzusage
+        - horizon europe
+        - josef ressel
+        - partnerliste
+        - unternehmenspartner
+        - wissenschaftlicher partner
+    negative_terms:
+      en:
+        - event-only page
+        - funding advice page
+        - generic funding news
+        - job ad
+        - programme mentioned in cv
+      de:
+        - eventkalender
+        - förderberatung
+        - generische fördernews
+        - programm im lebenslauf
+        - stellenanzeige
+
+  associated_partner_roles:
+    bm25_queries:
+      - "We are an associated partner or observer in the project consortium."
+      - "Our advisory partner role supports project implementation without beneficiary funding."
+      - "We participate in the stakeholder board, observer group or supporting partner network."
+      - "Our third-party role contributes tasks and expertise to the consortium."
+      - "Wir sind assoziierter Partner oder Beobachter im Projektkonsortium."
+      - "Unsere beratende Partnerrolle unterstützt die Projektumsetzung ohne Förderempfängerrolle."
+      - "Wir beteiligen uns am Stakeholder-Beirat, in der Beobachterrolle oder als unterstützender Partner."
+      - "Unsere Rolle als Dritter bringt Aufgaben und Expertise in das Konsortium ein."
+    keywords:
+      en:
+        - advisory partner
+        - associated partner
+        - associated partner in the consortium
+        - affiliate participant
+        - observer
+        - observer in the project
+        - stakeholder
+        - stakeholder board member
+        - supporting partner
+        - third party
+      de:
+        - assoziierter partner
+        - assoziierter partner im konsortium
+        - beirat
+        - beobachter
+        - beobachterrolle
+        - beratender partner
+        - dritter
+        - mitglied im stakeholder-beirat
+        - stakeholder
+        - unterstützender partner
+    boost_terms:
+      en:
+        - advisory board
+        - consortium
+        - project implementation
+        - role
+        - stakeholder board
+        - tasks
+      de:
+        - aufgaben
+        - beirat
+        - konsortium
+        - rolle
+        - stakeholder-beirat
+        - umsetzung
+    negative_terms:
+      en:
+        - generic partner
+        - partner without project context
+        - support partner in sales context
+      de:
+        - generischer partner
+        - partner ohne projektkontext
+        - unterstützungspartner im vertriebskontext
+
+  cluster_association_memberships:
+    bm25_queries:
+      - "We are a member of a named cluster, association or innovation network."
+      - "Our company is listed in the official member directory of an industry association."
+      - "We participate as a founding member, board member or steering group member."
+      - "Our cluster membership connects us with regional and thematic ecosystem partners."
+      - "Wir sind Mitglied eines namentlich genannten Clusters, Verbands oder Innovationsnetzwerks."
+      - "Unser Unternehmen ist im offiziellen Mitgliederverzeichnis eines Branchenverbands gelistet."
+      - "Wir beteiligen uns als Gründungsmitglied, Vorstandsmitglied oder im Lenkungskreis."
+      - "Unsere Clustermitgliedschaft verbindet uns mit regionalen und thematischen Ökosystempartnern."
+    keywords:
+      en:
+        - alliance
+        - association
+        - cluster
+        - cluster member
+        - community
+        - competence network
+        - founding member
+        - industry association
+        - innovation network
+        - member
+        - member of
+        - membership
+        - network
+        - official member directory
+        - part of the network
+        - platform
+      de:
+        - allianz
+        - beirat
+        - branchenverband
+        - cluster
+        - clusterinitiative
+        - clustermitglied
+        - community
+        - gründungsmitglied
+        - innovationsnetzwerk
+        - kompetenznetzwerk
+        - lenkungskreis
+        - mitglied
+        - mitglied von
+        - mitgliederverzeichnis
+        - mitgliedschaft
+        - netzwerk
+        - plattform
+        - teil des netzwerks
+        - verband
+        - vorstand
+    boost_terms:
+      en:
+        - board member
+        - directory
+        - founding member
+        - member directory
+        - official member
+        - partner organisation
+        - steering group
+      de:
+        - beirat
+        - gründungsmitglied
+        - lenkungskreis
+        - mitgliederverzeichnis
+        - offizielle mitgliedschaft
+        - partnerorganisation
+        - vorstand
+    negative_terms:
+      en:
+        - cluster as compute cluster
+        - community as user community
+        - network as computer network
+        - no named organisation
+      de:
+        - cluster als compute cluster
+        - community als user community
+        - keine namentlich genannte organisation
+        - netzwerk als computernetzwerk
+
+  innovation_hubs_testbeds_infrastructures:
+    bm25_queries:
+      - "We work with a European Digital Innovation Hub, TEF or AI Factory."
+      - "Our innovation hub offers test before invest, experimentation and access to skills."
+      - "We use regulatory sandboxes, testbeds and experimentation facilities for AI adoption."
+      - "Our regional hub provides access to finance, adoption support and ecosystem services."
+      - "Wir arbeiten mit einem European Digital Innovation Hub, einer TEF oder einer KI-Fabrik."
+      - "Unser Innovationshub bietet Test before Invest, Erprobung und Qualifizierung."
+      - "Wir nutzen Sandboxes, Testbeds und Test- und Experimentiereinrichtungen für KI-Adoption."
+      - "Unser regionaler Hub bietet Finanzierung, Adoptionsunterstützung und Ökosystemservices."
+    keywords:
+      en:
+        - ai factory
+        - ai-on-demand
+        - digital innovation hub
+        - edih
+        - european digital innovation hub
+        - innovation hub
+        - kic
+        - knowledge and innovation community
+        - one-stop shop
+        - regulatory sandbox
+        - sandbox
+        - tef
+        - test before invest
+        - testing facility
+        - testing and experimentation facility
+      de:
+        - adoption
+        - digital innovation hub
+        - edih
+        - european digital innovation hub
+        - erprobung
+        - finanzierung
+        - hub
+        - innovationshub
+        - ki-fabrik
+        - ki-on-demand
+        - qualifizierung
+        - reallabor
+        - sandbox
+        - tef
+        - test before invest
+        - test- und experimentiereinrichtung
+    boost_terms:
+      en:
+        - access to finance
+        - adoption
+        - ai-on-demand
+        - catalogue
+        - experimentation
+        - regional hub
+        - skills
+        - testbed
+      de:
+        - adoption
+        - erprobung
+        - finanzierung
+        - hub
+        - katalog
+        - ki-on-demand
+        - qualifizierung
+        - reallabor
+    negative_terms:
+      en:
+        - generic ecosystem branding
+        - generic hub branding
+        - generic lab branding
+        - no recognised programme marker
+      de:
+        - generisches hub-branding
+        - generisches lab-branding
+        - generisches ökosystem-branding
+        - kein programm-marker
+
+  advisory_boards_working_groups:
+    bm25_queries:
+      - "We serve on an advisory board, steering committee or working group."
+      - "Our experts are appointed to an expert panel, task force or council."
+      - "We contribute to roadmaps, governance structures and collaborative working groups."
+      - "Our company chairs or participates in an external industry board."
+      - "Wir sind Mitglied in einem Beirat, Lenkungskreis oder einer Arbeitsgruppe."
+      - "Unsere Expert:innen wurden in ein Expertengremium, eine Taskforce oder einen Rat berufen."
+      - "Wir tragen zu Roadmaps, Governance-Strukturen und Arbeitsgruppen bei."
+      - "Unser Unternehmen hat den Vorsitz oder beteiligt sich an einem externen Industry Board."
+    keywords:
+      en:
+        - advisory board
+        - appointed
+        - chair
+        - council
+        - expert panel
+        - governance
+        - industry board
+        - member of the advisory board
+        - roadmap
+        - steering committee
+        - task force
+        - working group
+      de:
+        - arbeitsgruppe
+        - beirat
+        - beteiligung an der arbeitsgruppe
+        - ernannt
+        - expertengremium
+        - expert:innenrat
+        - governance
+        - im lenkungskreis
+        - lenkungskreis
+        - mitglied
+        - mitglied des beirats
+        - rat
+        - roadmap
+        - taskforce
+        - vorsitz
+    boost_terms:
+      en:
+        - appointed
+        - chair
+        - external organisation
+        - governance
+        - member
+        - roadmap
+      de:
+        - ernannt
+        - externe organisation
+        - governance
+        - mitglied
+        - roadmap
+        - vorsitz
+    negative_terms:
+      en:
+        - internal governance only
+        - no external organisation
+        - purely internal committee
+      de:
+        - kein externer akteur
+        - nur interne governance
+        - rein internes gremium
+
+  technology_provider_relationships:
+    bm25_queries:
+      - "Our solution is built on a named cloud, data, model or platform provider."
+      - "We are a certified technology, cloud, integration or solution partner."
+      - "Our product integrates with partner APIs, marketplaces and software platforms."
+      - "We provide MLOps, data or platform integrations with named technology partners."
+      - "Unsere Lösung basiert auf einem Cloud-, Daten-, Modell- oder Plattformanbieter."
+      - "Wir sind zertifizierter Technologiepartner, Cloud-Partner, Integrationspartner oder Lösungspartner."
+      - "Unser Produkt integriert Partner-APIs, Marketplaces und Softwareplattformen."
+      - "Wir bieten MLOps-, Daten- und Plattformintegrationen mit Technologiepartnern."
+    keywords:
+      en:
+        - api
+        - built on
+        - certified by
+        - certified partner
+        - cloud partner
+        - integration partner
+        - marketplace partner
+        - platform partner
+        - powered by
+        - software partner
+        - solution partner
+        - technology partner
+      de:
+        - api
+        - basiert auf
+        - cloud-partner
+        - integrationspartner
+        - integriert mit
+        - marketplace
+        - plattformpartner
+        - powered by
+        - softwarepartner
+        - technologiepartner
+        - zertifiziert
+        - zertifiziert von
+    boost_terms:
+      en:
+        - api
+        - certified
+        - cloud
+        - databricks
+        - google cloud
+        - gpu
+        - integration
+        - marketplace
+        - mlops
+        - named provider brand
+        - nvidia
+        - sap
+        - snowflake
+      de:
+        - api
+        - cloud
+        - gpu
+        - integration
+        - marketplace
+        - mlops
+        - namentlich genannter anbieter
+        - zertifiziert
+    negative_terms:
+      en:
+        - broad strategic partnership without stack evidence
+        - generic partner page
+        - no named provider
+      de:
+        - breite strategische partnerschaft ohne stack-evidenz
+        - generische partnerseite
+        - kein namentlich genannter anbieter
+
+  customer_use_case_relationships:
+    bm25_queries:
+      - "Our customer story describes a named client and deployed use case."
+      - "This case study shows implementation, rollout and measurable customer outcomes."
+      - "Our reference customer uses the solution in production."
+      - "We completed a pilot deployment with a named customer organization."
+      - "Unsere Kundenreferenz beschreibt einen namentlich genannten Kunden und Anwendungsfall."
+      - "Diese Fallstudie zeigt Implementierung, Rollout und messbare Ergebnisse."
+      - "Unser Referenzkunde nutzt die Lösung im Produktivbetrieb."
+      - "Wir haben einen Piloteinsatz mit einer namentlich genannten Kundenorganisation umgesetzt."
+    keywords:
+      en:
+        - applied at
+        - case study
+        - client
+        - customer
+        - customer story
+        - deployment
+        - implementation at
+        - named customer
+        - pilot
+        - pilot deployment
+        - reference
+        - reference customer
+        - success story
+        - use case
+      de:
+        - anwendungsfall
+        - einsatz
+        - erfolgsgeschichte
+        - fallstudie
+        - im einsatz bei
+        - implementierung bei
+        - kunde
+        - kundenreferenz
+        - namentlich genannter kunde
+        - pilot
+        - pilotprojekt
+        - referenz
+        - referenzkunde
+        - referenzprojekt
+    boost_terms:
+      en:
+        - deployment
+        - in production
+        - measurable outcome
+        - named customer
+        - production
+        - rollout
+        - testimonial
+      de:
+        - ergebnis
+        - namentlich genannter kunde
+        - produktivbetrieb
+        - referenzlogo
+        - rollout
+    negative_terms:
+      en:
+        - bibliography reference
+        - document reference
+        - reference without customer language
+      de:
+        - dokumentreferenz
+        - literaturreferenz
+        - referenz ohne kundensprache
+
+  supplier_oem_integrator_relationships:
+    bm25_queries:
+      - "We work with suppliers, vendors and OEM partners in our value chain."
+      - "Our manufacturing partner provides components, hardware or production capacity."
+      - "We cooperate with systems integrators, resellers, distributors and channel partners."
+      - "Our preferred supplier and implementation partner supports deployment and integration."
+      - "Wir arbeiten mit Lieferanten, Zulieferern und OEM-Partnern in unserer Wertschöpfungskette."
+      - "Unser Fertigungspartner liefert Komponenten, Hardware oder Produktionskapazität."
+      - "Wir kooperieren mit Systemintegratoren, Resellern, Distributionspartnern und Vertriebspartnern."
+      - "Unser bevorzugter Lieferant und Implementierungspartner unterstützt Deployment und Integration."
+    keywords:
+      en:
+        - channel ecosystem
+        - channel partner
+        - distributor
+        - implementation partner
+        - manufacturing partner
+        - oem
+        - oem partner
+        - preferred supplier
+        - procurement
+        - reseller
+        - supplier
+        - supply partner
+        - systems integrator
+        - vendor
+      de:
+        - beschaffung
+        - bevorzugter lieferant
+        - distributionspartner
+        - fertigungspartner
+        - implementierungspartner
+        - lieferant
+        - oem
+        - oem-partner
+        - reseller
+        - systemintegrator
+        - vertriebskanal
+        - vertriebspartner
+        - zulieferer
+        - zulieferpartner
+    boost_terms:
+      en:
+        - components
+        - distribution
+        - hardware
+        - implementation
+        - integration
+        - manufacturing
+        - procurement
+      de:
+        - beschaffung
+        - distribution
+        - fertigung
+        - hardware
+        - implementierung
+        - integration
+        - komponenten
+    negative_terms:
+      en:
+        - legal procurement boilerplate
+        - procurement policy only
+        - supplier code of conduct only
+      de:
+        - beschaffungsrichtlinie ohne beziehung
+        - einkaufsbedingungen
+        - lieferantenkodex ohne beziehung
+
+  corporate_group_relationships:
+    bm25_queries:
+      - "We are part of a corporate group with subsidiaries, affiliates and sister companies."
+      - "Our company is a wholly owned subsidiary of a named parent company."
+      - "The group structure includes holdings, acquisitions and affiliated companies."
+      - "Our locations and group companies describe ownership and corporate structure."
+      - "Wir sind Teil einer Unternehmensgruppe mit Tochtergesellschaften und verbundenen Unternehmen."
+      - "Unser Unternehmen ist eine Tochtergesellschaft einer namentlich genannten Muttergesellschaft."
+      - "Die Konzernstruktur umfasst Holding, Übernahmen und Konzerngesellschaften."
+      - "Unsere Standorte und Gruppengesellschaften beschreiben Eigentum und Konzernstruktur."
+    keywords:
+      en:
+        - acquisition
+        - affiliate
+        - affiliate of
+        - corporate structure
+        - group
+        - group company
+        - member of the group
+        - owned by
+        - ownership
+        - parent
+        - parent company
+        - part of the group
+        - sister company
+        - subsidiary
+        - wholly owned subsidiary
+      de:
+        - beteiligung
+        - eigentum
+        - gehört zur gruppe
+        - gruppe
+        - holding
+        - konzern
+        - konzernstruktur
+        - konzernunternehmen
+        - konzerngesellschaft
+        - mutter
+        - muttergesellschaft
+        - teil der gruppe
+        - tochter
+        - tochter von
+        - tochtergesellschaft
+        - übernahme
+    boost_terms:
+      en:
+        - acquisition
+        - belongs to
+        - corporate structure
+        - owned by
+        - parent
+        - subsidiary
+      de:
+        - eigentum
+        - gehört zu
+        - konzernstruktur
+        - mutter
+        - tochter
+        - übernahme
+    negative_terms:
+      en:
+        - not an external ecosystem edge
+        - ownership only
+        - same group only
+      de:
+        - keine externe ecosystem-edge
+        - nur eigentum
+        - nur konzernbeziehung

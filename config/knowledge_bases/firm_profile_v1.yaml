@@ -1,0 +1,778 @@
+version: v1
+
+firm_profile:
+  company_description:
+    bm25_queries:
+      - "We are a company that develops, manufactures or provides products and services for our customers."
+      - "Our company profile explains who we are, what we do and which business we operate."
+      - "We are a provider, manufacturer, developer, supplier or specialist in our field."
+      - "Our business focuses on concrete activities, offerings and markets."
+      - "Wir sind ein Unternehmen, das Produkte und Dienstleistungen entwickelt, herstellt oder anbietet."
+      - "Unser Unternehmensprofil erklärt, wer wir sind, was wir tun und in welchem Geschäft wir tätig sind."
+      - "Wir sind Anbieter, Hersteller, Entwickler, Lieferant oder Spezialist in unserem Bereich."
+      - "Unser Unternehmen beschreibt konkrete Tätigkeiten, Angebote und Märkte."
+    keywords:
+      en:
+        - about us
+        - business
+        - company
+        - company profile
+        - developer
+        - firm
+        - manufacturer
+        - our business
+        - provider
+        - specialist
+        - supplier
+        - we develop
+        - we manufacture
+        - we provide
+        - what we do
+        - who we are
+      de:
+        - anbieter
+        - betrieb
+        - entwickler
+        - firma
+        - hersteller
+        - lieferant
+        - spezialist
+        - über uns
+        - unternehmen
+        - unternehmensprofil
+        - unser unternehmen
+        - was wir tun
+        - wer wir sind
+        - wir bieten
+        - wir entwickeln
+        - wir produzieren
+    boost_terms:
+      en:
+        - developer
+        - manufacturer
+        - operator
+        - provider
+        - specialist
+        - supplier
+      de:
+        - anbieter
+        - betreiber
+        - entwickler
+        - hersteller
+        - lieferant
+        - spezialist
+    negative_terms:
+      en:
+        - blog
+        - careers
+        - cookies
+        - events
+        - legal
+        - news
+        - press
+        - privacy
+        - team
+        - terms
+      de:
+        - agb
+        - blog
+        - cookies
+        - datenschutz
+        - events
+        - impressum
+        - karriere
+        - presse
+        - team
+
+  business_activity_statements:
+    bm25_queries:
+      - "We develop and build systems, products or software for customer applications."
+      - "We design, engineer, manufacture and produce concrete technical or commercial outputs."
+      - "We integrate and implement systems for customers and business processes."
+      - "We consult, advise and support customers with domain-specific services."
+      - "We operate, provide, distribute or maintain products, platforms and services."
+      - "Wir entwickeln und bauen Systeme, Produkte oder Software für Kundenanwendungen."
+      - "Wir konstruieren, fertigen, produzieren und betreiben konkrete Lösungen."
+      - "Wir integrieren und implementieren Systeme für Kunden und Geschäftsprozesse."
+      - "Wir beraten und unterstützen Kunden mit fachlichen Dienstleistungen."
+      - "Wir bieten, vertreiben und warten Produkte, Plattformen und Services."
+    keywords:
+      en:
+        - advise
+        - build
+        - consult
+        - design
+        - develop
+        - distribute
+        - engineer
+        - implement
+        - integrate
+        - maintain
+        - manufacture
+        - operate
+        - produce
+        - provide
+        - resell
+        - support
+        - train
+        - we build
+        - we develop
+        - we distribute
+        - we implement systems
+        - we manufacture
+        - we offer consulting
+        - we operate a platform
+        - we provide services
+        - we support customers
+      de:
+        - anbieten
+        - bauen
+        - beraten
+        - betreiben
+        - entwickeln
+        - fertigen
+        - herstellen
+        - implementieren
+        - integrieren
+        - konstruieren
+        - produzieren
+        - schulen
+        - unterstützen
+        - vertreiben
+        - warten
+        - wir beraten
+        - wir betreiben
+        - wir bauen
+        - wir entwickeln
+        - wir fertigen
+        - wir implementieren
+        - wir integrieren
+        - wir produzieren
+        - wir unterstützen unsere kunden
+        - wir vertreiben
+    boost_terms:
+      en:
+        - consulting
+        - development
+        - engineering
+        - implement
+        - integrate
+        - maintain
+        - manufacture
+        - operate
+      de:
+        - beratung
+        - betrieb
+        - entwicklung
+        - fertigung
+        - herstellung
+        - implementierung
+        - integration
+        - wartung
+    negative_terms:
+      en:
+        - empower
+        - enable
+        - innovate
+        - optimize
+        - support
+        - transform
+      de:
+        - befähigen
+        - ermöglichen
+        - innovieren
+        - optimieren
+        - transformieren
+        - unterstützen
+
+  products:
+    bm25_queries:
+      - "Our products include concrete devices, machines, tools, modules or equipment."
+      - "Our software products and apps are offered as part of a product portfolio."
+      - "Our product overview presents product families, models, features and specifications."
+      - "Customers can compare technical data, data sheets and product lines."
+      - "Unsere Produkte umfassen konkrete Geräte, Maschinen, Werkzeuge, Module oder Anlagen."
+      - "Unsere Softwareprodukte und Apps sind Teil unseres Produktportfolios."
+      - "Unsere Produktübersicht zeigt Produktfamilien, Modelle, Funktionen und technische Daten."
+      - "Kunden finden Datenblätter, Produktlinien und technische Spezifikationen."
+    keywords:
+      en:
+        - app
+        - catalog
+        - data sheet
+        - device
+        - equipment
+        - features
+        - machine
+        - model
+        - module
+        - our products
+        - platform
+        - portfolio
+        - product
+        - product family
+        - product line
+        - product overview
+        - product portfolio
+        - products
+        - software
+        - technical specifications
+        - tool
+      de:
+        - anlage
+        - app
+        - datenblatt
+        - gerät
+        - maschine
+        - modell
+        - modul
+        - plattform
+        - produkt
+        - produkte
+        - produktfamilie
+        - produktlinie
+        - produktportfolio
+        - produktübersicht
+        - software
+        - sortiment
+        - technische daten
+        - unsere produkte
+        - werkzeug
+    boost_terms:
+      en:
+        - catalog
+        - datasheet
+        - model
+        - portfolio
+        - product code
+        - products
+        - sku
+        - specifications
+      de:
+        - artikelnummer
+        - datenblatt
+        - modell
+        - produkte
+        - produktübersicht
+        - technische daten
+    negative_terms:
+      en:
+        - investment portfolio
+        - platform without deliverable
+        - production
+        - productivity
+      de:
+        - investmentportfolio
+        - plattform ohne liefergegenstand
+        - produktion
+        - produktivität
+
+  services:
+    bm25_queries:
+      - "Our services include consulting, implementation, integration and engineering."
+      - "We provide maintenance, support, training and managed services for customers."
+      - "Our service portfolio explains how we deliver projects and support operations."
+      - "We offer audits, design services, outsourcing and implementation services."
+      - "Unsere Leistungen umfassen Beratung, Implementierung, Integration und Engineering."
+      - "Wir bieten Wartung, Support, Schulung und Managed Services für Kunden."
+      - "Unser Leistungsportfolio erklärt, wie wir Projekte umsetzen und den Betrieb unterstützen."
+      - "Wir bieten Audits, Designleistungen, Outsourcing und Implementierungsleistungen."
+    keywords:
+      en:
+        - audit
+        - consulting
+        - consulting services
+        - design
+        - engineering
+        - implementation
+        - implementation services
+        - integration
+        - maintenance
+        - managed service
+        - managed services
+        - our services
+        - outsourcing
+        - service
+        - service portfolio
+        - services
+        - support
+        - support and maintenance
+        - training
+        - training services
+      de:
+        - audit
+        - beratung
+        - beratungsleistungen
+        - dienstleistung
+        - dienstleistungen
+        - engineering
+        - implementierung
+        - implementierungsleistungen
+        - integration
+        - leistungsportfolio
+        - leistungen
+        - managed services
+        - outsourcing
+        - schulung
+        - support
+        - support und wartung
+        - unsere dienstleistungen
+        - unsere leistungen
+        - wartung
+    boost_terms:
+      en:
+        - consulting
+        - implementation
+        - integration
+        - maintenance
+        - managed
+        - services
+        - support
+      de:
+        - beratung
+        - dienstleistungen
+        - implementierung
+        - integration
+        - leistungen
+        - support
+        - wartung
+    negative_terms:
+      en:
+        - customer service
+        - self-service
+        - service area
+        - service center
+        - service desk
+      de:
+        - kundenservice
+        - self-service
+        - servicebereich
+        - servicecenter
+        - servicedesk
+
+  solutions_platforms:
+    bm25_queries:
+      - "Our solutions solve concrete business or technical problems for specific customer needs."
+      - "We offer industry solutions and business solutions for defined applications."
+      - "Our platform supports a specific workflow, task or operational process."
+      - "Our end-to-end solution combines products, services and systems for customers."
+      - "Unsere Lösungen lösen konkrete geschäftliche oder technische Probleme für Kunden."
+      - "Wir bieten Branchenlösungen und Geschäftslösungen für definierte Anwendungen."
+      - "Unsere Plattform unterstützt einen bestimmten Workflow, eine Aufgabe oder einen Prozess."
+      - "Unsere End-to-End-Lösung verbindet Produkte, Services und Systeme für Kunden."
+    keywords:
+      en:
+        - application
+        - business solutions
+        - end-to-end
+        - end-to-end solution
+        - industry solutions
+        - platform
+        - platform for
+        - solution
+        - solution portfolio
+        - solutions
+        - solutions for
+        - suite
+        - system
+        - workflow
+      de:
+        - anwendung
+        - branchenlösung
+        - branchenlösungen
+        - end-to-end lösung
+        - lösung
+        - lösungen
+        - lösungen für
+        - lösungsportfolio
+        - plattform
+        - plattform für
+        - suite
+        - system
+        - systemlösung
+        - workflow
+    boost_terms:
+      en:
+        - end-to-end
+        - industry solution
+        - platform for a task
+        - solution for an industry
+        - suite
+        - workflow
+      de:
+        - branchenlösung
+        - end-to-end
+        - plattform für eine aufgabe
+        - systemlösung
+        - workflow
+    negative_terms:
+      en:
+        - digital
+        - future-ready
+        - generic platform
+        - generic solution
+        - innovative
+        - smart
+      de:
+        - digitale lösung
+        - generische lösung
+        - generische plattform
+        - innovativ
+        - smart
+        - zukunftssicher
+
+  industries_markets:
+    bm25_queries:
+      - "We serve specific industries, sectors, verticals and market segments."
+      - "Our solutions are used in automotive, healthcare, manufacturing, energy or logistics."
+      - "Our applications address defined markets, geographies and customer segments."
+      - "We describe the industries we serve and the target markets for our offerings."
+      - "Wir bedienen bestimmte Branchen, Sektoren, Märkte und Marktsegmente."
+      - "Unsere Lösungen werden in Automobil, Gesundheitswesen, Fertigung, Energie oder Logistik eingesetzt."
+      - "Unsere Anwendungen richten sich an definierte Märkte, Regionen und Kundensegmente."
+      - "Wir beschreiben unsere Branchen, Zielmärkte und Märkte für unsere Angebote."
+    keywords:
+      en:
+        - application
+        - applications in
+        - industries
+        - industries we serve
+        - industry
+        - market
+        - market segments
+        - markets
+        - sector
+        - segment
+        - serving the
+        - solutions for
+        - target markets
+        - vertical
+      de:
+        - anwendung
+        - anwendungen in
+        - branche
+        - branchen
+        - branchenlösungen
+        - lösungen für
+        - markt
+        - märkte
+        - marktsegmente
+        - sektor
+        - segment
+        - wir bedienen
+        - zielmärkte
+    boost_terms:
+      en:
+        - automotive
+        - construction
+        - energy
+        - finance
+        - healthcare
+        - logistics
+        - manufacturing
+        - public sector
+        - retail
+      de:
+        - automobil
+        - bau
+        - energie
+        - fertigung
+        - finanzwesen
+        - gesundheitswesen
+        - handel
+        - logistik
+        - öffentlicher sektor
+    negative_terms:
+      en:
+        - capital markets
+        - global market leader
+        - market news
+        - market presence
+      de:
+        - globale marktpräsenz
+        - kapitalmärkte
+        - marktführer
+        - marktnachrichten
+
+  customers_references:
+    bm25_queries:
+      - "Our customers and clients use our products, services or solutions."
+      - "Our references show selected customers, customer names and commercial deployments."
+      - "Customer testimonials and success stories describe how clients use our offerings."
+      - "Trusted customers and reference clients demonstrate our work in specific sectors."
+      - "Unsere Kunden nutzen unsere Produkte, Leistungen oder Lösungen."
+      - "Unsere Referenzen zeigen ausgewählte Kunden, Kundennamen und kommerzielle Einsätze."
+      - "Kundenreferenzen und Erfolgsgeschichten beschreiben den Einsatz unserer Angebote."
+      - "Referenzkunden zeigen unsere Arbeit in konkreten Branchen."
+    keywords:
+      en:
+        - client
+        - client testimonials
+        - clients
+        - customer
+        - customer references
+        - customers
+        - our customers
+        - reference
+        - references
+        - selected clients
+        - success story
+        - testimonial
+        - trusted by
+      de:
+        - ausgewählte kunden
+        - erfolgsgeschichte
+        - kunde
+        - kunden
+        - kundenreferenzen
+        - referenz
+        - referenzen
+        - referenzkunden
+        - testimonial
+        - unsere kunden
+        - vertrauen auf uns
+    boost_terms:
+      en:
+        - customer name
+        - logo captions
+        - selected customers
+        - sector names near customers
+        - trusted by
+      de:
+        - branchenbegriffe nahe kundennamen
+        - kunden
+        - kundenname
+        - logo-beschriftungen
+        - referenzen
+    negative_terms:
+      en:
+        - bibliography
+        - image-only logo wall
+        - reference documentation
+        - references without customer context
+      de:
+        - bildbasierte logo-wand
+        - literaturverzeichnis
+        - referenzdokumentation
+        - referenzen ohne kundenkontext
+
+  case_studies_use_cases:
+    bm25_queries:
+      - "Our case study explains the customer challenge, our solution and the results."
+      - "This use case shows how our product or service was implemented for a customer."
+      - "Our reference project describes deployment, implementation and example application."
+      - "A customer story shows how we helped solve a concrete business problem."
+      - "Unsere Fallstudie erklärt Herausforderung, Lösung und Ergebnis beim Kunden."
+      - "Dieser Anwendungsfall zeigt, wie unser Produkt oder unsere Leistung eingesetzt wurde."
+      - "Unser Referenzprojekt beschreibt Einsatz, Implementierung und Beispielanwendung."
+      - "Eine Erfolgsgeschichte zeigt, wie wir ein konkretes Kundenproblem gelöst haben."
+    keywords:
+      en:
+        - case study
+        - challenge
+        - customer story
+        - deployment
+        - example application
+        - how we helped
+        - implementation
+        - project
+        - reference project
+        - results
+        - solution
+        - success story
+        - use case
+      de:
+        - anwendungsfall
+        - ausgangssituation
+        - beispielanwendung
+        - einsatz
+        - erfolgsgeschichte
+        - ergebnis
+        - fallstudie
+        - herausforderung
+        - implementierung
+        - kundenprojekt
+        - lösung
+        - projekt
+        - referenzprojekt
+        - so haben wir
+    boost_terms:
+      en:
+        - challenge
+        - client name
+        - industry name
+        - result
+        - solution
+      de:
+        - branchenname
+        - ergebnis
+        - herausforderung
+        - kundenname
+        - lösung
+    negative_terms:
+      en:
+        - blog post about a project
+        - news item about a project
+        - project without customer context
+      de:
+        - blogbeitrag über ein projekt
+        - nachricht über ein projekt
+        - projekt ohne kundenkontext
+
+  competencies_capabilities:
+    bm25_queries:
+      - "Our capabilities describe the expertise, competences and specializations we bring to customers."
+      - "Our competence areas explain the technical and business fields where we have experience."
+      - "Our engineering and domain expertise supports customer projects and applications."
+      - "We describe our specialization through concrete methods, skills and delivery capabilities."
+      - "Unsere Kompetenzen beschreiben Expertise, Spezialisierungen und Fähigkeiten für Kunden."
+      - "Unsere Kompetenzfelder erklären technische und fachliche Erfahrungsbereiche."
+      - "Unsere Engineering- und Fachexpertise unterstützt Kundenprojekte und Anwendungen."
+      - "Wir beschreiben unsere Spezialisierung durch konkrete Methoden, Fähigkeiten und Umsetzungskompetenz."
+    keywords:
+      en:
+        - capabilities
+        - capability
+        - competence
+        - competences
+        - competencies
+        - domain expertise
+        - engineering
+        - expertise
+        - experience
+        - know-how
+        - specialization
+        - specializations
+      de:
+        - erfahrung
+        - expertise
+        - fachkompetenz
+        - fähigkeiten
+        - kompetenz
+        - kompetenzen
+        - kompetenzfelder
+        - know-how
+        - spezialgebiet
+        - spezialisierung
+        - umsetzungskompetenz
+    boost_terms:
+      en:
+        - domain expertise
+        - engineering
+        - experience in an application
+        - specialist
+        - technical capability
+      de:
+        - anwendungserfahrung
+        - engineering
+        - fachkompetenz
+        - spezialist
+        - technische kompetenz
+    negative_terms:
+      en:
+        - excellence
+        - future-ready
+        - generic expertise
+        - leading
+        - passion
+        - quality
+      de:
+        - exzellenz
+        - führend
+        - generische expertise
+        - leidenschaft
+        - qualität
+        - zukunftssicher
+
+  value_proposition:
+    bm25_queries:
+      - "Our value proposition explains how customers reduce costs, improve quality or increase efficiency."
+      - "We help customers improve reliability, scalability, compliance and operational performance."
+      - "Customers choose us because our offering creates measurable benefits and advantages."
+      - "Our solution helps customers become faster, safer or more efficient in a concrete process."
+      - "Unser Mehrwert zeigt, wie Kunden Kosten senken, Qualität verbessern oder Effizienz steigern."
+      - "Wir unterstützen Kunden bei Zuverlässigkeit, Skalierbarkeit, Compliance und operativer Leistung."
+      - "Kunden wählen uns, weil unser Angebot konkrete Vorteile und Nutzen schafft."
+      - "Unsere Lösung macht konkrete Prozesse schneller, sicherer oder effizienter."
+    keywords:
+      en:
+        - advantage
+        - automation
+        - benefit
+        - benefits
+        - compliance
+        - efficiency
+        - ensure compliance
+        - improve quality
+        - increase efficiency
+        - optimization
+        - reduce costs
+        - reliability
+        - scalability
+        - shorter time-to-market
+        - usp
+        - value
+        - value proposition
+        - what sets us apart
+        - why choose us
+      de:
+        - automatisierung
+        - compliance
+        - effizienz
+        - effizienz steigern
+        - ihr mehrwert
+        - compliance sicherstellen
+        - kosten senken
+        - kürzere time-to-market
+        - mehrwert
+        - nutzen
+        - optimierung
+        - qualität
+        - qualität verbessern
+        - skalierbarkeit
+        - usp
+        - vorteil
+        - warum wir
+        - was uns auszeichnet
+        - zuverlässigkeit
+    boost_terms:
+      en:
+        - ensure
+        - faster
+        - improve
+        - increase
+        - more efficient
+        - reduce
+        - safer
+      de:
+        - effizienter
+        - schneller
+        - senken
+        - sicherer
+        - sicherstellen
+        - steigern
+        - verbessern
+    negative_terms:
+      en:
+        - best-in-class
+        - cutting-edge
+        - digital
+        - future-proof
+        - innovative
+        - leading
+        - premium
+        - smart
+        - sustainable
+        - trusted
+        - world-class
+      de:
+        - digital
+        - erstklassig
+        - führend
+        - innovativ
+        - nachhaltig
+        - premium
+        - smart
+        - vertrauenswürdig
+        - weltklasse
+        - zukunftssicher

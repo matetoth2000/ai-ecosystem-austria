@@ -371,3 +371,67 @@ The core methodological bottleneck is now evidence selection, not discovery or a
 ### Implications
 
 The next design milestone will define content extraction, page scoring dimensions, retention policy, and whether embeddings/chunking are needed.
+
+---
+
+## 2026-06-18 — Redesign evidence selection around content-based page scoring
+
+### Context
+
+Following the successful completion of discovery and page acquisition, the project shifted from URL-based evidence selection to content-based evidence selection.
+
+The primary methodological objective is now to retain pages that best describe a firm's business activities, technologies, innovation, and ecosystem participation rather than relying primarily on URL heuristics.
+
+### Decision
+
+The pipeline will adopt a page-level content scoring architecture consisting of:
+
+Discovery
+→ HTML Acquisition
+→ Markdown Extraction + Page Feature Extraction
+→ Multi-dimensional Page Scoring
+→ Page Retention
+→ LLM Extraction
+→ Knowledge Graph Construction
+
+Four independent evidence dimensions will be scored:
+
+- Firm Profile
+- Technology
+- Innovation
+- Ecosystem
+
+The scoring architecture is designed around:
+
+- BM25 query families
+- multilingual keyword families
+- boost terms
+- negative terms
+
+Knowledge bases, scoring profiles, and retention profiles will be independently versioned and configurable.
+
+Retention will be objective-based rather than URL-based, using configurable quotas, thresholds, and caps.
+
+### Rationale
+
+This architecture separates evidence acquisition from evidence selection, making the pipeline more scalable, interpretable, reproducible, and suitable for large-scale web mining of the Austrian AI ecosystem.
+
+---
+
+## 2026-07-08 — Freeze extraction pipeline before content scoring
+
+### Context
+Milestone 3B implemented HTML-to-Markdown extraction, page feature extraction, evidence-package generation, and extraction quality analysis.
+
+### Decision
+Treat the extraction stage as stable and proceed to the design and implementation of content-based page scoring.
+
+### Reasoning
+Extraction quality is high enough for the project's objectives. Remaining imperfections (short pages, missing headings, duplicate content, template-heavy pages) are characteristic of real-world company websites rather than failures of the extraction pipeline.
+
+The primary methodological challenge has shifted from content extraction to evidence selection.
+
+### Implications
+- Do not spend additional effort optimizing extraction before scoring.
+- Future improvements to extraction should only be considered if content-scoring experiments demonstrate systematic evidence loss.
+- Development effort should now focus on designing and validating multi-dimensional content scoring.

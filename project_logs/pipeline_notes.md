@@ -218,3 +218,76 @@ Candidate content dimensions:
 - structural/site importance
 
 No further implementation should proceed until this content-retention design is locked.
+
+---
+
+## Current Pipeline Design (v1)
+
+Pipeline:
+
+1. URL Discovery
+2. HTML Acquisition
+3. Markdown Extraction + Page Feature Extraction
+4. Page Scoring
+5. Page Retention
+6. LLM Extraction
+7. Knowledge Graph Construction
+
+Extraction stage responsibilities:
+
+- Trafilatura-based markdown extraction
+- Plain-text extraction
+- Heading hierarchy preservation
+- Link extraction
+- Language detection
+- Page metadata extraction
+- Storage of extracted content and page features
+
+Scoring stage (future):
+
+- BM25 retrieval
+- Multilingual keyword-family scoring
+- Independent scores for:
+  - Firm Profile
+  - Technology
+  - Innovation
+  - Ecosystem
+
+Retention stage (future):
+
+- Objective-aware configurable retention profiles
+- Versioned scoring and retention experiments
+- Page-level evidence packages for downstream LLM extraction
+
+Validation philosophy:
+
+Every major pipeline stage should be validated before proceeding to the next stage. For extraction, validation consists of:
+- automatic quality metrics
+- semantic LLM-based comparison between HTML and extracted content
+- assessment of evidence preservation for downstream scoring.
+
+---
+
+## 2026-07-08 - Current methodological direction (Post-Milestone 3B) 
+
+The extraction stage is now considered stable and forms the reusable evidence layer of the pipeline.
+
+Current pipeline architecture:
+
+Discovery
+→ Acquisition
+→ Raw compressed HTML
+→ Trafilatura main-content extraction
+→ Evidence package
+    - Markdown
+    - Plain text
+    - Metadata
+    - Page features
+    - Internal/external links
+→ Content scoring (next milestone)
+→ Evidence retention
+→ LLM-based firm information extraction
+
+The next methodological focus is no longer improving extraction quality but identifying which extracted pages provide the strongest evidence for describing firms, technologies, innovation, partnerships, and AI ecosystem participation.
+
+Content scoring will become the primary mechanism for evidence selection before downstream LLM processing.

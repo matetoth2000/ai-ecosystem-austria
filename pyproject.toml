@@ -12,6 +12,7 @@ dependencies = [
     "openai",
     "pyyaml",
     "requests",
+    "trafilatura",
 ]
 
 [tool.setuptools.packages.find]

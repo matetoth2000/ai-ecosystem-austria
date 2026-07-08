@@ -1,0 +1,874 @@
+version: v1
+
+innovation:
+  research_and_development:
+    bm25_queries:
+      - "We conduct research and development for new products, processes and technologies."
+      - "Our R&D team works on applied research and experimental development."
+      - "We operate a research lab focused on technical validation and novel methods."
+      - "Our engineers and scientists develop prototypes and proof-of-concept systems in-house."
+      - "We maintain a research roadmap for technology development and new applications."
+      - "Wir betreiben Forschung und Entwicklung für neue Produkte, Prozesse und Technologien."
+      - "Unser F&E-Team arbeitet an angewandter Forschung und experimenteller Entwicklung."
+      - "Unser Forschungslabor validiert neuartige Methoden und technische Lösungen."
+      - "Unsere Ingenieur:innen und Wissenschaftler:innen entwickeln Prototypen intern."
+      - "Unsere Forschungsagenda beschreibt Technologieentwicklung und neue Anwendungen."
+    keywords:
+      en:
+        - applied research
+        - basic research
+        - development
+        - engineering
+        - experimental development
+        - feasibility
+        - proof of concept
+        - r&d
+        - r&d department
+        - r&d team
+        - research
+        - research agenda
+        - research and development
+        - research programme
+        - research scientist
+        - research team
+        - technology development
+      de:
+        - angewandte forschung
+        - entwicklung
+        - experimentelle entwicklung
+        - f&e
+        - f&e-abteilung
+        - f&e-team
+        - forschung
+        - forschung und entwicklung
+        - forschungsagenda
+        - forschungsgruppe
+        - forschungsprogramm
+        - forschungsteam
+        - industrielle forschung
+        - interne entwicklung
+        - machbarkeit
+        - machbarkeitsstudie
+        - technologieentwicklung
+    boost_terms:
+      en:
+        - ai team
+        - engineers
+        - in-house
+        - lab
+        - laboratory
+        - ml team
+        - novel method
+        - proprietary
+        - roadmap
+        - scientists
+        - state of the art
+        - technical validation
+      de:
+        - forschungslabor
+        - ingenieur:innen
+        - intern
+        - ki-team
+        - labor
+        - laboratorium
+        - neuartige methode
+        - proprietär
+        - roadmap
+        - stand der technik
+        - technische validierung
+        - wissenschaftler:innen
+    negative_terms:
+      en:
+        - business development
+        - consulting
+        - digital transformation
+        - excellence
+        - future-ready
+        - innovation
+        - innovative
+        - property development
+        - solution
+        - website development
+      de:
+        - beratung
+        - digitale transformation
+        - exzellenz
+        - geschäftsentwicklung
+        - innovation
+        - innovativ
+        - projektentwicklung
+        - webentwicklung
+        - zukunftssicher
+
+  funded_innovation_projects:
+    bm25_queries:
+      - "We participate in Horizon Europe and Horizon 2020 research and innovation projects."
+      - "Our funded project includes work packages, milestones, deliverables and consortium partners."
+      - "We are an FFG project partner in cooperative R&D and innovation programmes."
+      - "Our COMET, Christian Doppler or Josef Ressel collaboration develops new technologies."
+      - "We use aws Proof of Concept, aws Preseed, BRIDGE or Spin-off Fellowship funding."
+      - "Wir arbeiten in Horizon-Europe-Projekten und EU-geförderten Innovationsprojekten."
+      - "Unser gefördertes Projekt umfasst Arbeitspakete, Meilensteine und Deliverables."
+      - "Wir sind Konsortialpartner in einem FFG-Projekt oder kooperativen F&E-Projekt."
+      - "Unsere COMET-, Christian-Doppler- oder Josef-Ressel-Kooperation entwickelt neue Technologien."
+      - "Wir nutzen aws Proof of Concept, aws Preseed, BRIDGE oder Spin-off Fellowship."
+    keywords:
+      en:
+        - aws preseed
+        - aws proof of concept
+        - bridge project
+        - call
+        - christian doppler laboratory
+        - co-funded
+        - comet centre
+        - consortium
+        - consortium member
+        - deliverable
+        - dissemination
+        - ffg project
+        - funded
+        - funded by the european union
+        - grant
+        - grant agreement
+        - horizon 2020
+        - horizon europe
+        - innovation action
+        - josef ressel centre
+        - milestone
+        - partner
+        - project
+        - project partner
+        - proposal
+        - research and innovation action
+        - spin-off fellowship
+        - work package
+      de:
+        - arbeitspaket
+        - antrag
+        - ausschreibung
+        - aws preseed
+        - aws proof of concept
+        - bridge-projekt
+        - christian-doppler-labor
+        - comet-zentrum
+        - deliverable
+        - dissemination
+        - ffg-projekt
+        - förderung
+        - gefördert
+        - gefördert durch aws
+        - gefördert durch ffg
+        - grant agreement
+        - horizon europe
+        - innovationsmaßnahme
+        - josef-ressel-zentrum
+        - kofinanziert
+        - konsortialpartner
+        - konsortium
+        - meilenstein
+        - partner
+        - projekt
+        - projektpartner
+        - spin-off fellowship
+        - verwertung
+    boost_terms:
+      en:
+        - cordis
+        - consortium
+        - deliverable
+        - funded by aws
+        - funded by ffg
+        - grant agreement number
+        - milestone
+        - partner universities
+        - project id
+        - trl
+      de:
+        - cordis
+        - deliverable
+        - gefördert durch aws
+        - gefördert durch ffg
+        - grant agreement
+        - konsortium
+        - meilenstein
+        - partneruniversitäten
+        - projekt-id
+        - trl
+    negative_terms:
+      en:
+        - client project
+        - csr project
+        - customer project
+        - internal project only
+        - project management services
+        - reference project
+      de:
+        - csr-projekt
+        - internes projekt
+        - kundenprojekt
+        - projektmanagement-dienstleistung
+        - referenzprojekt
+
+  product_and_service_innovation:
+    bm25_queries:
+      - "We launched a new product with improved functionality and technical features."
+      - "Our new service was developed in-house and introduced on the market."
+      - "We bring product innovations from development into customer deployment."
+      - "Our new platform generation adds validated capabilities and scalable functionality."
+      - "We work with pilot customers to validate new products and services."
+      - "Wir haben ein neues Produkt mit verbesserten Funktionen am Markt eingeführt."
+      - "Unsere neue Dienstleistung wurde intern entwickelt und eingeführt."
+      - "Unsere Produktinnovation verbindet Entwicklung, Validierung und Markteinführung."
+      - "Unsere neue Plattformgeneration bietet validierte und skalierbare Funktionalität."
+      - "Wir validieren neue Produkte und Services mit Pilotkunden."
+    keywords:
+      en:
+        - ai-powered product
+        - developed
+        - developed in-house
+        - feature
+        - in-house developed
+        - introduced on the market
+        - launch
+        - market launch
+        - module
+        - new functionality
+        - new generation platform
+        - new product
+        - new service
+        - new-to-market
+        - platform
+        - product innovation
+        - release
+        - software
+        - system
+      de:
+        - am markt eingeführt
+        - entwickelt
+        - funktion
+        - intern entwickelt
+        - ki-gestütztes produkt
+        - markteinführung
+        - modul
+        - neue dienstleistung
+        - neue funktionalität
+        - neue plattformgeneration
+        - neues produkt
+        - neu am markt
+        - plattform
+        - produktinnovation
+        - release
+        - software
+        - system
+    boost_terms:
+      en:
+        - benchmarked
+        - deployment
+        - first-of-its-kind
+        - patented
+        - pilot customer
+        - prototype
+        - scalable
+        - state of the art
+        - validated
+      de:
+        - benchmarked
+        - einsatz
+        - neuartig
+        - patentiert
+        - pilotkunde
+        - prototyp
+        - skalierbar
+        - stand der technik
+        - validiert
+    negative_terms:
+      en:
+        - catalogue
+        - cosmetic redesign
+        - distribution
+        - portfolio expansion
+        - product range
+        - rebranding
+        - reseller
+        - webshop
+      de:
+        - händler
+        - katalog
+        - kosmetische überarbeitung
+        - produktpalette
+        - rebranding
+        - sortimentserweiterung
+        - vertrieb
+        - webshop
+
+  process_and_operational_innovation:
+    bm25_queries:
+      - "We redesigned production processes to improve efficiency and quality."
+      - "Our process automation supports new manufacturing and operational workflows."
+      - "We use predictive maintenance and digital twins to improve production systems."
+      - "Our AI-supported process optimization improves inspection, planning and operations."
+      - "We implemented data-driven optimization internally in production and quality control."
+      - "Wir verbessern Produktionsprozesse durch Automatisierung und Prozessinnovation."
+      - "Unsere Prozessautomatisierung unterstützt neue Fertigungsprozesse und Arbeitsabläufe."
+      - "Wir nutzen vorausschauende Wartung und digitale Zwillinge für Produktionssysteme."
+      - "Unsere KI-gestützte Prozessoptimierung verbessert Inspektion, Planung und Betrieb."
+      - "Wir setzen datengetriebene Optimierung intern in Produktion und Qualitätskontrolle ein."
+    keywords:
+      en:
+        - ai-supported process
+        - automation
+        - business process innovation
+        - data-driven optimisation
+        - digital process redesign
+        - digital twin
+        - manufacturing process
+        - mlops
+        - new manufacturing process
+        - new production process
+        - predictive maintenance
+        - process automation
+        - process innovation
+        - production efficiency
+        - production system
+        - quality control
+        - smart factory
+        - workflow
+      de:
+        - arbeitsablauf
+        - automatisierung
+        - datengetriebene optimierung
+        - digitale prozessneugestaltung
+        - digitaler zwilling
+        - fertigung
+        - fertigungsprozess
+        - geschäftsprozessinnovation
+        - ki-gestützter prozess
+        - mlops
+        - neuer produktionsprozess
+        - neues fertigungsverfahren
+        - predictive maintenance
+        - prozessautomatisierung
+        - prozessinnovation
+        - produktionseffizienz
+        - produktionssystem
+        - qualitätskontrolle
+        - smart factory
+        - vorausschauende wartung
+    boost_terms:
+      en:
+        - implemented internally
+        - industrial ai
+        - inspection system
+        - process control
+        - production line
+        - robotics
+        - sensor fusion
+        - validated in operation
+      de:
+        - im betrieb validiert
+        - industrielle ki
+        - inspektionssystem
+        - intern implementiert
+        - prozessregelung
+        - produktionslinie
+        - robotik
+        - sensorfusion
+    negative_terms:
+      en:
+        - business process outsourcing
+        - implementation services
+        - iso page without novelty
+        - process consulting
+        - workflow software reseller
+      de:
+        - bpo
+        - implementierungsservices
+        - iso-seite ohne neuheitsbezug
+        - prozessberatung
+        - workflow-software-händler
+
+  prototypes_pilots_and_testbeds:
+    bm25_queries:
+      - "We built a prototype and validated it in a relevant environment."
+      - "Our pilot deployment tests the system with customers and validation partners."
+      - "We operate a demonstrator, testbed or pilot line for new technology."
+      - "Our proof-of-concept system was demonstrated in an operational environment."
+      - "We run field trials, living labs and beta deployments before market launch."
+      - "Wir haben einen Prototyp in einer relevanten Umgebung validiert."
+      - "Unser Piloteinsatz testet das System mit Kunden und Validierungspartnern."
+      - "Wir betreiben Demonstratoren, Testbeds und Pilotlinien für neue Technologien."
+      - "Unser Proof of Concept wurde in einer Einsatzumgebung demonstriert."
+      - "Wir nutzen Feldversuche, Living Labs und Beta-Einsätze vor der Markteinführung."
+    keywords:
+      en:
+        - beta deployment
+        - demonstrator
+        - field trial
+        - field validation
+        - large-scale demonstrator
+        - living lab
+        - operational environment
+        - pilot
+        - pilot deployment
+        - pilot line
+        - pilot project
+        - proof of concept
+        - prototype
+        - relevant environment
+        - sandbox
+        - system prototype
+        - technology demonstrated
+        - technology validated
+        - test environment
+        - test site
+        - testbed
+        - trial deployment
+        - validation
+      de:
+        - beta-einsatz
+        - demonstrator
+        - einsatzumgebung
+        - feldvalidierung
+        - feldversuch
+        - großdemonstrator
+        - living lab
+        - pilot
+        - piloteinsatz
+        - pilotlinie
+        - pilotprojekt
+        - proof of concept
+        - prototyp
+        - relevante umgebung
+        - sandbox
+        - systemprototyp
+        - technologie demonstriert
+        - technologie validiert
+        - testbed
+        - testeinsatz
+        - teststandort
+        - testumgebung
+        - validierung
+    boost_terms:
+      en:
+        - beta deployment
+        - living lab
+        - operational environment
+        - prototype demonstrated
+        - relevant environment
+        - test site
+        - trl
+        - validation partner
+      de:
+        - beta-einsatz
+        - einsatzumgebung
+        - living lab
+        - prototyp demonstriert
+        - relevante umgebung
+        - teststandort
+        - trl
+        - validierungspartner
+    negative_terms:
+      en:
+        - concept only
+        - demo video only
+        - pilot customer logos without technical context
+        - prototype as marketing metaphor
+        - ui mockup
+      de:
+        - nur demo-video
+        - nur konzept
+        - pilotkundenlogos ohne technikbezug
+        - prototyp als werbemetapher
+        - ui-mockup
+
+  patents_ip_and_exploitation:
+    bm25_queries:
+      - "We filed patent applications for our technology and inventions."
+      - "Our patent portfolio protects proprietary products, systems and methods."
+      - "We license intellectual property and commercialize research results."
+      - "Our IP portfolio includes granted patents, PCT applications and technology licensing."
+      - "We use exploitation plans to bring project results and inventions to market."
+      - "Wir haben Patentanmeldungen für unsere Technologie und Erfindungen eingereicht."
+      - "Unser Patentportfolio schützt proprietäre Produkte, Systeme und Verfahren."
+      - "Wir lizenzieren geistiges Eigentum und verwerten Forschungsergebnisse."
+      - "Unser IP-Portfolio umfasst erteilte Patente, PCT-Anmeldungen und Technologielizenzierung."
+      - "Unsere Verwertungspläne bringen Projektergebnisse und Erfindungen in den Markt."
+    keywords:
+      en:
+        - commercial exploitation
+        - design right
+        - exploitation
+        - freedom to operate
+        - intellectual property
+        - intellectual property rights
+        - ip
+        - ip portfolio
+        - licence
+        - licensing
+        - licensing agreement
+        - patent
+        - patent application
+        - patent pending
+        - patented
+        - pct application
+        - technology licensing
+        - trade secret
+        - trademark
+      de:
+        - anmelder:in
+        - betriebsgeheimnis
+        - erteiltes patent
+        - freedom to operate
+        - geistiges eigentum
+        - geschmacksmuster
+        - ip
+        - ip-portfolio
+        - lizenz
+        - lizenzierung
+        - lizenzvereinbarung
+        - marke
+        - patent
+        - patent angemeldet
+        - patentanmeldung
+        - patentiert
+        - pct-anmeldung
+        - schutzrechte
+        - technologielizenzierung
+        - verwertung
+        - wirtschaftliche verwertung
+        - zum patent angemeldet
+    boost_terms:
+      en:
+        - assignee
+        - claims
+        - exclusive licence
+        - exploitation plan
+        - granted patent
+        - inventor
+        - patent family
+        - technology transfer office
+      de:
+        - anmelder:in
+        - ansprüche
+        - erteiltes patent
+        - erfinder:in
+        - exklusive lizenz
+        - patentfamilie
+        - technologietransferstelle
+        - verwertungsplan
+    negative_terms:
+      en:
+        - brand-protection page only
+        - copyright
+        - law firm content
+        - patent leather
+        - privacy
+        - privacy and trademark boilerplate
+      de:
+        - datenschutz
+        - datenschutz- und marken-standardtexte
+        - kanzleiinhalt
+        - lackleder
+        - reine markenschutzseite
+        - urheberrecht
+
+  research_collaboration_and_ecosystem_linkages:
+    bm25_queries:
+      - "We collaborate with universities and research institutes on joint research projects."
+      - "Our consortium partners include competence centres, labs and public-private research organizations."
+      - "We work with clusters, hubs and innovation ecosystems on applied research."
+      - "Our university partnerships produce co-authored publications and joint projects."
+      - "We are part of COMET, Christian Doppler, Josef Ressel or Digital Innovation Hub networks."
+      - "Wir kooperieren mit Universitäten und Forschungseinrichtungen in gemeinsamen Forschungsprojekten."
+      - "Unsere Konsortialpartner umfassen Kompetenzzentren, Labore und öffentlich-private Forschung."
+      - "Wir arbeiten mit Clustern, Hubs und Innovationsökosystemen an angewandter Forschung."
+      - "Unsere Universitätspartnerschaften führen zu gemeinsamen Publikationen und Projekten."
+      - "Wir sind Teil von COMET-, Christian-Doppler-, Josef-Ressel- oder Digital-Innovation-Hub-Netzwerken."
+    keywords:
+      en:
+        - ait
+        - cluster
+        - cluster initiative
+        - co-publication
+        - collaboration
+        - competence centre
+        - consortium
+        - consortium partner
+        - digital innovation hub
+        - ecosystem
+        - fh
+        - hub
+        - innovation ecosystem
+        - institute
+        - joint project
+        - joint research
+        - partner
+        - public-private collaboration
+        - research collaboration
+        - research institute
+        - research partner
+        - tu wien
+        - university
+        - university partnership
+      de:
+        - ait
+        - christian-doppler-labor
+        - cluster
+        - clusterinitiative
+        - comet
+        - digital innovation hub
+        - fh
+        - forschungseinrichtung
+        - forschungskooperation
+        - forschungspartner
+        - forschungszentrum
+        - gemeinsame forschung
+        - gemeinsame publikation
+        - gemeinschaftsprojekt
+        - hub
+        - innovationsökosystem
+        - institut
+        - josef-ressel-zentrum
+        - kompetenzzentrum
+        - konsortialpartner
+        - konsortium
+        - ko-publikation
+        - öffentlich-private zusammenarbeit
+        - ökosystem
+        - partner
+        - tu wien
+        - universität
+        - universitätspartnerschaft
+    boost_terms:
+      en:
+        - ait
+        - christian doppler laboratory
+        - co-authored publication
+        - comet
+        - fh
+        - josef ressel centre
+        - research centre
+        - tu wien
+        - university names
+      de:
+        - ait
+        - christian-doppler-labor
+        - comet
+        - fh
+        - forschungszentrum
+        - gemeinsame publikation
+        - josef-ressel-zentrum
+        - tu wien
+        - universitätsnamen
+    negative_terms:
+      en:
+        - alliance
+        - channel partner
+        - ecosystem used only in marketing sense
+        - implementation partner
+        - network
+        - sales partner
+      de:
+        - allianz
+        - channel-partner
+        - implementierungspartner
+        - netzwerk
+        - ökosystem nur im marketing-sinn
+        - vertriebspartner
+
+  technology_transfer_and_commercialisation:
+    bm25_queries:
+      - "We transfer research results from lab to market through commercialization and licensing."
+      - "Our technology transfer office supports spin-offs, startup creation and IP exploitation."
+      - "We run an innovation lab, incubator or accelerator for new ventures."
+      - "Our proof-of-concept funding supports commercialization of research results."
+      - "We connect science parks, incubators and industry partners for technology transfer."
+      - "Wir bringen Forschungsergebnisse durch Technologietransfer und Lizenzierung in den Markt."
+      - "Unsere Technologietransferstelle unterstützt Spin-offs, Unternehmensgründung und Verwertung."
+      - "Wir betreiben Innovationslabore, Inkubatoren oder Accelerator-Programme."
+      - "Unsere Proof-of-Concept-Förderung unterstützt die Kommerzialisierung von Forschungsergebnissen."
+      - "Wir verbinden Wissenschaftsparks, Inkubatoren und Industriepartner im Technologietransfer."
+    keywords:
+      en:
+        - accelerator
+        - aws preseed
+        - aws proof of concept
+        - commercialization
+        - exploitation
+        - from lab to market
+        - incubation programme
+        - incubator
+        - innovation lab
+        - knowledge and technology transfer
+        - knowledge transfer
+        - maker space
+        - proof of concept funding
+        - science and technology park
+        - science park
+        - spin-off
+        - spin-off fellowship
+        - spin-off programme
+        - startup accelerator
+        - startup creation
+        - technology transfer
+        - technology transfer office
+        - tto
+      de:
+        - accelerator
+        - aws preseed
+        - aws proof of concept
+        - exploitationsplan
+        - inkubationsprogramm
+        - inkubator
+        - innovationslabor
+        - kommerzialisierung
+        - lizenzierung
+        - makerspace
+        - proof-of-concept-förderung
+        - science park
+        - spin-off
+        - spin-off fellowship
+        - spin-off-programm
+        - startup-accelerator
+        - technologietransfer
+        - technologietransferstelle
+        - tto
+        - unternehmensgründung
+        - verwertung
+        - vom labor zum markt
+        - wissens- und technologietransfer
+        - wissenstransfer
+        - wissenschaftspark
+        - wissenschafts- und technologiepark
+    boost_terms:
+      en:
+        - aws preseed
+        - aws proof of concept
+        - exploitation
+        - incubator
+        - licensing
+        - science park
+        - spin-off fellowship
+        - startup creation
+        - tto
+      de:
+        - aws preseed
+        - aws proof of concept
+        - inkubator
+        - lizenzierung
+        - science park
+        - spin-off fellowship
+        - tto
+        - unternehmensgründung
+        - verwertung
+    negative_terms:
+      en:
+        - accelerator only as customer programme
+        - creative lab
+        - ideation event
+        - incubator literal non-business meaning
+        - innovation workshop
+      de:
+        - accelerator nur als kundenprogramm
+        - ideation-event
+        - inkubator im nichtunternehmerischen sinn
+        - innovationsworkshop
+        - kreativlabor
+
+  research_outputs_and_scientific_visibility:
+    bm25_queries:
+      - "We publish peer-reviewed research papers, technical reports and conference papers."
+      - "Our team releases datasets, open-source software and public repositories."
+      - "We present benchmark results, challenge participation and scientific posters."
+      - "Our research is visible through journals, conferences, DOI links and co-authored papers."
+      - "We share technical white papers with methods, validation and applied research results."
+      - "Wir veröffentlichen peer-reviewte Publikationen, technische Berichte und Konferenzbeiträge."
+      - "Unser Team veröffentlicht Datensätze, Open-Source-Software und Repositories."
+      - "Wir präsentieren Benchmark-Ergebnisse, Challenge-Teilnahmen und wissenschaftliche Poster."
+      - "Unsere Forschung ist über Fachartikel, Konferenzen, DOI und gemeinsame Publikationen sichtbar."
+      - "Unsere technischen Whitepaper beschreiben Methoden, Validierung und angewandte Forschung."
+    keywords:
+      en:
+        - arxiv
+        - benchmark
+        - benchmark result
+        - challenge participation
+        - conference
+        - conference paper
+        - dataset
+        - doi
+        - github
+        - journal
+        - open source
+        - open-source software
+        - paper
+        - peer-reviewed publication
+        - public dataset
+        - publication
+        - repository
+        - research publication
+        - scientific poster
+        - technical report
+        - white paper
+      de:
+        - arxiv
+        - benchmark
+        - benchmark-ergebnis
+        - challenge-sieger
+        - datensatz
+        - doi
+        - fachartikel
+        - forschungspublikation
+        - gemeinsame publikation
+        - github
+        - konferenz
+        - konferenzbeitrag
+        - koautoriert
+        - open source
+        - open-source-software
+        - paper
+        - peer-reviewte publikation
+        - publikation
+        - repository
+        - technischer bericht
+        - whitepaper
+        - wissenschaftliches poster
+        - öffentlicher datensatz
+    boost_terms:
+      en:
+        - acm
+        - arxiv
+        - benchmark
+        - challenge winner
+        - co-authored
+        - cvpr
+        - doi
+        - github
+        - icml
+        - ieee
+        - neurips
+      de:
+        - acm
+        - arxiv
+        - benchmark
+        - challenge-sieger
+        - cvpr
+        - doi
+        - github
+        - icml
+        - ieee
+        - koautoriert
+        - neurips
+    negative_terms:
+      en:
+        - blog post
+        - generic insight article
+        - news article
+        - pr white paper
+        - webinar recap
+      de:
+        - allgemeiner insights-artikel
+        - blogbeitrag
+        - newsartikel
+        - pr-whitepaper
+        - webinar-rückblick

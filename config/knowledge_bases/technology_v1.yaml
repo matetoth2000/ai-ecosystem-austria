@@ -1,0 +1,750 @@
+version: v1
+
+technology:
+  artificial_intelligence:
+    bm25_queries:
+      - "We develop machine learning models for industrial and business applications."
+      - "Our computer vision systems detect defects and support automated quality inspection."
+      - "We build NLP solutions for language, speech and document processing."
+      - "Our generative AI assistants support enterprise workflows and content generation."
+      - "We train and deploy AI models with MLOps pipelines and model inference."
+      - "Our recommendation engines personalize products, services and customer interactions."
+      - "We use anomaly detection to identify faults, risks and unusual system behavior."
+      - "Our predictive models support forecasting, planning and decision support."
+      - "Wir entwickeln KI-Lösungen mit maschinellem Lernen und Deep Learning."
+      - "Unsere Bildverarbeitung erkennt Fehler und unterstützt die Qualitätsprüfung."
+      - "Wir entwickeln NLP-Lösungen für Sprache, Dokumente und Verarbeitung natürlicher Sprache."
+      - "Unsere generative KI unterstützt Unternehmensprozesse und Content-Erstellung."
+      - "Wir trainieren und betreiben KI-Modelle mit MLOps, Modellbereitstellung und Inferenz."
+      - "Unsere Empfehlungssysteme personalisieren Produkte, Services und Kundeninteraktionen."
+      - "Wir nutzen Anomalieerkennung, um Fehler, Risiken und ungewöhnliches Systemverhalten zu erkennen."
+      - "Wir nutzen künstliche Intelligenz für Prognosen, Anomalieerkennung und Entscheidungsunterstützung."
+      - "Unsere erklärbare KI und wissensbasierten Systeme unterstützen komplexe Entscheidungen."
+    keywords:
+      en:
+        - ai
+        - ai engineering
+        - ai methods
+        - ai-powered defect detection
+        - anomaly detection
+        - artificial intelligence
+        - artificial intelligence solutions
+        - autonomous operation
+        - computer audition
+        - computer linguistics
+        - computer vision
+        - computer vision for quality inspection
+        - computer vision system
+        - decision support system
+        - deep learning
+        - develop machine learning models
+        - discovery
+        - edge ai for industrial control
+        - expert system
+        - explainable ai
+        - forecasting
+        - foundation model
+        - foundation model deployment
+        - generative ai
+        - generative ai assistant for enterprise workflows
+        - generative ai platform
+        - inference
+        - knowledge graph
+        - knowledge-based expert system
+        - llm
+        - machine learning
+        - machine learning models
+        - machine vision
+        - ml
+        - mlops
+        - mlops pipeline
+        - model deployment
+        - model inference
+        - model training
+        - model training pipeline
+        - natural language processing
+        - neural network
+        - nlp
+        - nlp platform
+        - planning
+        - predictive model
+        - recommendation engine
+        - reinforcement learning
+        - speech recognition
+        - symbolic ai
+      de:
+        - anomalieerkennung
+        - autonomer betrieb
+        - bildverarbeitung
+        - computer vision
+        - computer vision system
+        - deep learning
+        - entscheidungsunterstützungssystem
+        - erklärbare ki
+        - generative ki
+        - generative ki plattform
+        - inferenz
+        - ki
+        - ki methoden
+        - ki-engineering
+        - künstliche intelligenz
+        - künstliche intelligenz lösungen
+        - llm
+        - machine learning
+        - maschinelles lernen
+        - maschinelles lernen modelle
+        - modellbereitstellung
+        - modelltraining
+        - modelltraining pipeline
+        - mlops
+        - neuronales netz
+        - nlp
+        - prädiktives modell
+        - spracherkennung
+        - symbolische ki
+        - verarbeitung natürlicher sprache
+        - wissensbasierte systeme
+        - wissensgraph
+    boost_terms:
+      en:
+        - autonomous
+        - classifier
+        - deployment
+        - detector
+        - fine-tuning
+        - inference
+        - mlops
+        - model
+        - model lifecycle
+        - multimodal
+        - optimisation
+        - prediction
+        - reasoning
+        - segmentation
+        - training
+      de:
+        - autonom
+        - deployment
+        - detektion
+        - feintuning
+        - inferenz
+        - klassifikator
+        - modell
+        - modelllebenszyklus
+        - multimodal
+        - optimierung
+        - prognose
+        - segmentierung
+        - training
+    negative_terms:
+      en:
+        - ai-ready
+        - dashboard
+        - data visualization
+        - descriptive analytics only
+        - digital assistant
+        - fixed rules
+        - future-ready
+        - heuristic
+        - intelligent
+        - innovative
+        - optimizer
+        - predefined rules
+        - reporting
+        - rule-based
+        - rules engine
+        - smart
+        - statistics
+        - survey results
+        - virtual assistant
+        - visualization only
+      de:
+        - lernen
+        - modell
+        - vision
+
+  data_and_analytics:
+    bm25_queries:
+      - "We build data platforms for analytics, reporting and decision support."
+      - "Our data pipelines integrate information from enterprise systems and external sources."
+      - "We design data warehouses, data lakes and lakehouse architectures."
+      - "Our business intelligence solutions provide dashboards, visualization and reporting."
+      - "We deliver predictive analytics and forecasting for planning and operations."
+      - "Our real-time analytics process streaming data from systems, sensors and applications."
+      - "We support data governance, master data management and data quality."
+      - "Unsere Datenplattformen verbinden Datenquellen für Analyse und Berichtswesen."
+      - "Wir integrieren Daten mit Datenpipelines, Data Warehouse und Data Lakehouse."
+      - "Unsere Business-Intelligence-Lösungen liefern Dashboards, Visualisierung und Reporting."
+      - "Unsere prädiktive Analytik unterstützt Prognosen, Planung und Entscheidungsunterstützung."
+      - "Unsere Echtzeitanalytik verarbeitet Streaming-Daten aus Systemen, Sensoren und Anwendungen."
+      - "Wir unterstützen Data Governance, Datenmanagement und Datenqualität."
+    keywords:
+      en:
+        - advanced analytics
+        - analytics
+        - analytics platform
+        - bi
+        - big data
+        - business intelligence
+        - data
+        - data analytics
+        - data engineering
+        - data governance
+        - data integration
+        - data lake
+        - data lakehouse
+        - data platform
+        - data pipeline
+        - data processing
+        - data product
+        - data science
+        - data warehouse
+        - dashboard
+        - decision support
+        - elt
+        - etl
+        - forecasting
+        - lakehouse
+        - master data
+        - predictive analytics
+        - real-time analytics
+        - recommendation
+        - reporting
+        - streaming
+        - streaming analytics
+        - visualization
+      de:
+        - advanced analytics
+        - analytics plattform
+        - analytik
+        - berichtswesen
+        - business intelligence
+        - data engineering
+        - data lake
+        - data lakehouse
+        - data warehouse
+        - dashboard
+        - daten
+        - datenanalyse
+        - datenanalytik
+        - datenintegration
+        - datenmanagement
+        - datenpipeline
+        - datenplattform
+        - datenverarbeitung
+        - datenwarehouse
+        - datenwissenschaft
+        - echtzeitanalytik
+        - entscheidungsunterstützung
+        - elt
+        - etl
+        - lakehouse
+        - prädiktive analytik
+        - streaming
+        - streaming analytik
+        - visualisierung
+    boost_terms:
+      en:
+        - feature store
+        - forecasting
+        - governance
+        - lakehouse
+        - observability
+        - optimization
+        - predictive
+        - real-time
+        - recommendation
+        - segmentation
+        - semantic layer
+        - streaming
+      de:
+        - echtzeit
+        - empfehlung
+        - feature store
+        - governance
+        - lakehouse
+        - observability
+        - optimierung
+        - prädiktiv
+        - prognose
+        - semantic layer
+        - streaming
+    negative_terms:
+      en:
+        - charts
+        - dashboard only
+        - descriptive analytics only
+        - kpi
+        - media analytics
+        - reporting only
+        - statistics
+        - survey statistics
+        - visualization only
+        - web analytics without technical evidence
+      de:
+        - dashboard
+        - visualisierung
+
+  software_and_cloud:
+    bm25_queries:
+      - "We develop custom software and enterprise applications for business processes."
+      - "Our SaaS products provide cloud-based software for customers and partners."
+      - "We build cloud-native platforms with microservices, containers and Kubernetes."
+      - "Our APIs and SDKs connect systems, applications and digital services."
+      - "We integrate enterprise systems and automate software deployment."
+      - "Our DevOps teams deliver CI/CD, release management and platform engineering."
+      - "We develop embedded software for devices, machines and industrial systems."
+      - "Wir entwickeln individuelle Software und Unternehmenssoftware."
+      - "Unsere SaaS-Produkte bieten cloudbasierte Software für Kunden und Partner."
+      - "Unsere Cloud-Plattformen und cloud-native Anwendungen skalieren digitale Services."
+      - "Wir verbinden Systeme über APIs, Systemintegration und Software Engineering."
+      - "Wir automatisieren Softwarebereitstellung mit DevOps, CI/CD, Release Management und Plattform Engineering."
+      - "Wir entwickeln Embedded Software für Geräte, Maschinen und industrielle Systeme."
+    keywords:
+      en:
+        - api
+        - api platform
+        - app
+        - application
+        - architecture
+        - ci/cd
+        - cloud
+        - cloud platform
+        - cloud-native
+        - cloud-native application
+        - container
+        - continuous deployment
+        - continuous integration
+        - custom software
+        - deployment
+        - developer platform
+        - devops
+        - embedded software
+        - enterprise software
+        - integration
+        - kubernetes
+        - microservices
+        - platform
+        - platform engineering
+        - release management
+        - rest api
+        - saas
+        - sdk
+        - software
+        - software as a service
+        - software development
+        - software engineering
+        - software products
+        - system integration
+      de:
+        - anwendung
+        - api
+        - api-plattform
+        - app
+        - architektur
+        - ci/cd
+        - cloud
+        - cloud plattform
+        - cloud-native
+        - cloud-native anwendung
+        - container
+        - continuous deployment
+        - continuous integration
+        - deployment
+        - entwicklerplattform
+        - embedded software
+        - individuelle software
+        - integration
+        - kubernetes
+        - microservices
+        - plattform
+        - plattform engineering
+        - rest api
+        - saas
+        - sdk
+        - software
+        - software as a service
+        - software engineering
+        - softwareentwicklung
+        - softwareprodukte
+        - softwaretechnik
+        - systemintegration
+        - unternehmenssoftware
+    boost_terms:
+      en:
+        - api
+        - architecture
+        - ci/cd
+        - cloud-native
+        - deploy
+        - integration
+        - kubernetes
+        - microservices
+        - platform engineering
+        - release
+        - saas
+        - sdk
+      de:
+        - api
+        - architektur
+        - ci/cd
+        - cloud-native
+        - deployment
+        - integration
+        - kubernetes
+        - microservices
+        - plattform engineering
+        - release
+        - saas
+        - sdk
+    negative_terms:
+      en:
+        - business platform
+        - collaboration platform
+        - communication platform
+        - digital solution
+        - it support only
+        - learning platform
+        - platform as generic product label
+        - software-supported
+        - technology platform without ecosystem or multi-sided evidence
+        - website platform
+      de:
+        - plattform
+
+  automation_and_control:
+    bm25_queries:
+      - "We automate production lines, machines and industrial plants."
+      - "Our PLC and SCADA systems control processes, machines and facilities."
+      - "We implement HMI, MES and industrial control systems for manufacturing."
+      - "Our condition monitoring detects machine status and production issues."
+      - "We provide predictive maintenance for equipment, machines and plants."
+      - "Our IIoT and edge computing solutions connect industrial systems and sensors."
+      - "We optimize production processes, machine monitoring and quality inspection."
+      - "Unsere Automatisierungstechnik steuert Maschinen, Anlagen und Produktionslinien."
+      - "Unsere SPS, Leittechnik und Prozesssteuerung unterstützen industrielle Prozesse."
+      - "Wir implementieren HMI, MES und industrielle Steuerungssysteme für die Fertigung."
+      - "Unsere Zustandsüberwachung erkennt Maschinenstatus und Produktionsprobleme."
+      - "Wir bieten Zustandsüberwachung, vorausschauende Wartung und Prozessoptimierung."
+      - "Unsere IIoT- und Edge-Computing-Lösungen verbinden industrielle Systeme und Sensoren."
+      - "Wir optimieren Produktionsprozesse, Maschinenüberwachung und Qualitätsinspektion."
+    keywords:
+      en:
+        - automation
+        - computer-integrated manufacturing
+        - condition monitoring
+        - control systems
+        - cyber-physical system
+        - cyber-physical systems
+        - dcs
+        - edge computing
+        - hmi
+        - iiot
+        - industrial automation
+        - industrial control
+        - industrial control system
+        - industrial ethernet
+        - industrial internet of things
+        - industrial iot
+        - machine control
+        - machine monitoring
+        - manufacturing execution system
+        - measuring devices
+        - mes
+        - opc ua
+        - plc
+        - process automation
+        - process control
+        - process optimisation
+        - production monitoring
+        - programmable logic controller
+        - quality control
+        - quality inspection
+        - scada
+        - testing devices
+      de:
+        - automatisierung
+        - automatisierungstechnik
+        - cyber-physische systeme
+        - cyber-physisches system
+        - dcs
+        - edge computing
+        - hmi
+        - iiot
+        - industrielle automatisierung
+        - industrielle ethernet
+        - industrielle iot
+        - industrielles internet der dinge
+        - industrielles steuerungssystem
+        - industrieautomation
+        - leittechnik
+        - manufacturing execution system
+        - maschinenüberwachung
+        - mes
+        - messgeräte
+        - opc ua
+        - prozessautomatisierung
+        - prozessleitsystem
+        - prozessoptimierung
+        - prozesssteuerung
+        - produktionsüberwachung
+        - qualitätsinspektion
+        - qualitätskontrolle
+        - scada
+        - speicherprogrammierbare steuerung
+        - sps
+        - steuerungstechnik
+        - vorausschauende wartung
+        - zustandsüberwachung
+    boost_terms:
+      en:
+        - condition monitoring
+        - dcs
+        - edge
+        - edge ai
+        - hmi
+        - industrial ethernet
+        - mes
+        - opc ua
+        - plc
+        - predictive maintenance
+        - process optimisation
+        - scada
+      de:
+        - edge ai
+        - hmi
+        - industrielle ethernet
+        - mes
+        - opc ua
+        - prognosewartung
+        - prozessoptimierung
+        - scada
+        - sps
+        - vorausschauende wartung
+        - zustandsüberwachung
+    negative_terms:
+      en:
+        - automated billing
+        - automated email
+        - control in finance
+        - control in compliance
+        - hr automation
+        - marketing automation
+        - office automation
+        - robotic process automation
+        - rpa-only for robotics
+        - workflow automation
+      de:
+        - rpa
+        - steuerung
+
+  robotics_and_autonomous_systems:
+    bm25_queries:
+      - "We design and integrate industrial robots and robot cells."
+      - "Our collaborative robots support flexible production and assembly."
+      - "We develop manipulators, grippers and robotic handling systems."
+      - "Our autonomous mobile robots and AGVs transport materials in warehouses and factories."
+      - "We use drones and autonomous systems for inspection, navigation and monitoring."
+      - "Our robot control and motion planning enable precise robotic manipulation."
+      - "Machine vision guides our robots in picking, inspection and positioning."
+      - "Unsere Robotik integriert Industrieroboter, Cobots und Robotikzellen."
+      - "Kollaborative Roboter unterstützen flexible Produktion und Montage."
+      - "Wir entwickeln Manipulatoren, Greifer und robotische Handhabungssysteme."
+      - "Fahrerlose Transportsysteme und autonome mobile Roboter unterstützen Logistik und Produktion."
+      - "Drohnen und autonome Systeme übernehmen Inspektion, Navigation und Monitoring."
+      - "Unsere Robotiksteuerung und Bewegungsplanung ermöglichen präzise robotische Manipulation."
+      - "Unsere robotische Inspektion nutzt Navigation, Bildverarbeitung und Robotiksteuerung."
+    keywords:
+      en:
+        - agv
+        - amr
+        - autonomy
+        - autonomous drone
+        - autonomous mobile robot
+        - autonomous system
+        - automated guided vehicle
+        - cobot
+        - collaborative robot
+        - drone
+        - gripper
+        - industrial robot
+        - machine vision
+        - machine vision guided
+        - manipulator
+        - motion planning
+        - navigation
+        - perception
+        - pick and place
+        - robot
+        - robot cell
+        - robot control
+        - robotic
+        - robotic inspection
+        - robotic manipulation
+        - robotics
+        - service robot
+        - unmanned
+        - warehouse robotics
+      de:
+        - amr
+        - autonome drohne
+        - autonomer mobiler roboter
+        - autonomes system
+        - autonomie
+        - bewegungsplanung
+        - bildverarbeitung
+        - bildverarbeitungsgeführt
+        - cobot
+        - drohne
+        - fahrerloses transportsystem
+        - ftf
+        - greifer
+        - industrieroboter
+        - kollaborativer roboter
+        - lagerrobotik
+        - manipulator
+        - maschinelles sehen
+        - navigation
+        - roboter
+        - robotik
+        - robotiksteuerung
+        - robotisch
+        - robotische inspektion
+        - robotische manipulation
+        - serviceroboter
+        - wahrnehmung
+    boost_terms:
+      en:
+        - agv
+        - amr
+        - autonomy
+        - cobot
+        - gripper
+        - machine vision
+        - manipulator
+        - motion planning
+        - navigation
+        - perception
+        - robot control
+      de:
+        - amr
+        - autonomie
+        - bewegungsplanung
+        - bildverarbeitung
+        - cobot
+        - ftf
+        - greifer
+        - manipulator
+        - navigation
+        - robotiksteuerung
+        - wahrnehmung
+    negative_terms:
+      en:
+        - chat bot
+        - educational robot kits
+        - robotic as metaphor
+        - robotic process automation
+        - rpa
+        - software bot
+        - toy robot
+      de:
+        - robotisch
+        - rpa
+        - software bot
+
+  engineering_systems:
+    bm25_queries: []
+    keywords:
+      en:
+        - cad
+        - cae
+        - connectivity
+        - digital twin
+        - edge device
+        - electronic design
+        - electronics
+        - embedded software
+        - embedded systems
+        - engineering
+        - fem
+        - hardware-software co-design
+        - high-performance computing
+        - hpc
+        - industrial connectivity
+        - iot
+        - mechatronic systems
+        - mechatronics
+        - microelectronics
+        - mobility
+        - photonics
+        - real-time systems
+        - semiconductors
+        - sensing
+        - sensor fusion
+        - sensors
+        - signal processing
+        - simulation
+        - simulation software
+        - test bench
+      de:
+        - cad
+        - cae
+        - digitaler zwilling
+        - edge gerät
+        - echtzeitsysteme
+        - eingebettete systeme
+        - elektronik
+        - elektronische entwicklung
+        - embedded software
+        - fem
+        - halbleiter
+        - hardware-software co-design
+        - high-performance computing
+        - hpc
+        - industrielle konnektivität
+        - ingenieurwesen
+        - iot
+        - konnektivität
+        - mechatronik
+        - mechatronische systeme
+        - mikroelektronik
+        - photonik
+        - prüfstand
+        - sensoren
+        - sensorfusion
+        - sensorik
+        - signalverarbeitung
+        - simulation
+        - simulationssoftware
+    boost_terms:
+      en:
+        - edge
+        - electronics
+        - embedded
+        - hpc
+        - mechatronics
+        - real-time
+        - sensor fusion
+        - signal processing
+        - simulation
+        - digital twin
+      de:
+        - digitaler zwilling
+        - echtzeit
+        - edge
+        - eingebettet
+        - elektronik
+        - hpc
+        - mechatronik
+        - sensorfusion
+        - signalverarbeitung
+        - simulation
+    negative_terms:
+      en:
+        - civil engineering
+        - construction engineering
+        - consulting engineering generic
+        - design only
+        - engineering services generic
+        - technology solutions
+      de: []

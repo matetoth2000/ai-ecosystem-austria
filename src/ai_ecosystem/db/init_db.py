@@ -403,6 +403,191 @@ def ensure_validation_schema(connection: sqlite3.Connection) -> None:
     )
 
 
+def ensure_extraction_schema(connection: sqlite3.Connection) -> None:
+    """Create extraction-stage tables for existing development DBs."""
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS extracted_pages (
+            extracted_page_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            scraped_page_id INTEGER NOT NULL,
+            extraction_version TEXT NOT NULL,
+            extraction_status TEXT DEFAULT 'pending',
+            markdown_path TEXT,
+            text_path TEXT,
+            metadata_path TEXT,
+            language TEXT,
+            extracted_at TEXT,
+            content_sha256 TEXT,
+            extraction_run_id TEXT,
+            extraction_started_at TEXT,
+            extraction_completed_at TEXT,
+            extraction_error TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (scraped_page_id) REFERENCES scraped_pages(scraped_page_id),
+            FOREIGN KEY (extraction_run_id) REFERENCES extraction_runs(extraction_run_id),
+            UNIQUE(scraped_page_id, extraction_version)
+        );
+        """
+    )
+    extracted_columns = table_columns(connection, "extracted_pages")
+    extracted_migrations = {
+        "metadata_path": "ALTER TABLE extracted_pages ADD COLUMN metadata_path TEXT",
+        "language": "ALTER TABLE extracted_pages ADD COLUMN language TEXT",
+        "extracted_at": "ALTER TABLE extracted_pages ADD COLUMN extracted_at TEXT",
+        "content_sha256": "ALTER TABLE extracted_pages ADD COLUMN content_sha256 TEXT",
+        "extraction_run_id": "ALTER TABLE extracted_pages ADD COLUMN extraction_run_id TEXT",
+        "extraction_started_at": "ALTER TABLE extracted_pages ADD COLUMN extraction_started_at TEXT",
+        "extraction_completed_at": "ALTER TABLE extracted_pages ADD COLUMN extraction_completed_at TEXT",
+        "extraction_error": "ALTER TABLE extracted_pages ADD COLUMN extraction_error TEXT",
+    }
+    for column, statement in extracted_migrations.items():
+        if column not in extracted_columns:
+            connection.execute(statement)
+
+    connection.execute(
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_extracted_pages_unique_scraped_version
+        ON extracted_pages(scraped_page_id, extraction_version);
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_extracted_pages_scraped_page_id
+        ON extracted_pages(scraped_page_id);
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_extracted_pages_extraction_status
+        ON extracted_pages(extraction_status);
+        """
+    )
+
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS extraction_runs (
+            extraction_run_id TEXT PRIMARY KEY,
+            sample_id TEXT,
+            extraction_version TEXT,
+            started_at TEXT,
+            finished_at TEXT,
+            selected_pages INTEGER,
+            processed_pages INTEGER,
+            successful_pages INTEGER,
+            skipped_pages INTEGER,
+            failed_pages INTEGER,
+            configuration_hash TEXT
+        );
+        """
+    )
+    run_columns = table_columns(connection, "extraction_runs")
+    run_migrations = {
+        "sample_id": "ALTER TABLE extraction_runs ADD COLUMN sample_id TEXT",
+        "extraction_version": "ALTER TABLE extraction_runs ADD COLUMN extraction_version TEXT",
+        "started_at": "ALTER TABLE extraction_runs ADD COLUMN started_at TEXT",
+        "finished_at": "ALTER TABLE extraction_runs ADD COLUMN finished_at TEXT",
+        "selected_pages": "ALTER TABLE extraction_runs ADD COLUMN selected_pages INTEGER",
+        "processed_pages": "ALTER TABLE extraction_runs ADD COLUMN processed_pages INTEGER",
+        "successful_pages": "ALTER TABLE extraction_runs ADD COLUMN successful_pages INTEGER",
+        "skipped_pages": "ALTER TABLE extraction_runs ADD COLUMN skipped_pages INTEGER",
+        "failed_pages": "ALTER TABLE extraction_runs ADD COLUMN failed_pages INTEGER",
+        "configuration_hash": "ALTER TABLE extraction_runs ADD COLUMN configuration_hash TEXT",
+    }
+    for column, statement in run_migrations.items():
+        if column not in run_columns:
+            connection.execute(statement)
+
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS page_features (
+            extracted_page_id INTEGER PRIMARY KEY,
+            title TEXT,
+            word_count INTEGER,
+            heading_count INTEGER,
+            headings TEXT,
+            heading_hierarchy TEXT,
+            paragraph_count INTEGER,
+            page_type_guess TEXT,
+            language TEXT,
+            markdown_path TEXT,
+            text_path TEXT,
+            feature_version TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (extracted_page_id) REFERENCES extracted_pages(extracted_page_id)
+        );
+        """
+    )
+    feature_columns = table_columns(connection, "page_features")
+    feature_migrations = {
+        "title": "ALTER TABLE page_features ADD COLUMN title TEXT",
+        "word_count": "ALTER TABLE page_features ADD COLUMN word_count INTEGER",
+        "heading_count": "ALTER TABLE page_features ADD COLUMN heading_count INTEGER",
+        "headings": "ALTER TABLE page_features ADD COLUMN headings TEXT",
+        "heading_hierarchy": "ALTER TABLE page_features ADD COLUMN heading_hierarchy TEXT",
+        "paragraph_count": "ALTER TABLE page_features ADD COLUMN paragraph_count INTEGER",
+        "page_type_guess": "ALTER TABLE page_features ADD COLUMN page_type_guess TEXT",
+        "language": "ALTER TABLE page_features ADD COLUMN language TEXT",
+        "markdown_path": "ALTER TABLE page_features ADD COLUMN markdown_path TEXT",
+        "text_path": "ALTER TABLE page_features ADD COLUMN text_path TEXT",
+        "feature_version": "ALTER TABLE page_features ADD COLUMN feature_version TEXT",
+    }
+    for column, statement in feature_migrations.items():
+        if column not in feature_columns:
+            connection.execute(statement)
+
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS page_links (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            extracted_page_id INTEGER NOT NULL,
+            source_url TEXT,
+            target_url TEXT,
+            normalized_target_url TEXT,
+            target_domain TEXT,
+            normalized_target_domain TEXT,
+            anchor_text TEXT,
+            anchor_word_count INTEGER,
+            rel_attribute TEXT,
+            internal_external TEXT,
+            is_internal INTEGER,
+            link_order INTEGER,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (extracted_page_id) REFERENCES extracted_pages(extracted_page_id)
+        );
+        """
+    )
+    link_columns = table_columns(connection, "page_links")
+    link_migrations = {
+        "source_url": "ALTER TABLE page_links ADD COLUMN source_url TEXT",
+        "target_url": "ALTER TABLE page_links ADD COLUMN target_url TEXT",
+        "normalized_target_url": "ALTER TABLE page_links ADD COLUMN normalized_target_url TEXT",
+        "target_domain": "ALTER TABLE page_links ADD COLUMN target_domain TEXT",
+        "normalized_target_domain": "ALTER TABLE page_links ADD COLUMN normalized_target_domain TEXT",
+        "anchor_text": "ALTER TABLE page_links ADD COLUMN anchor_text TEXT",
+        "anchor_word_count": "ALTER TABLE page_links ADD COLUMN anchor_word_count INTEGER",
+        "rel_attribute": "ALTER TABLE page_links ADD COLUMN rel_attribute TEXT",
+        "internal_external": "ALTER TABLE page_links ADD COLUMN internal_external TEXT",
+        "is_internal": "ALTER TABLE page_links ADD COLUMN is_internal INTEGER",
+        "link_order": "ALTER TABLE page_links ADD COLUMN link_order INTEGER",
+    }
+    for column, statement in link_migrations.items():
+        if column not in link_columns:
+            connection.execute(statement)
+
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_page_links_extracted_page_id
+        ON page_links(extracted_page_id);
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_page_links_target_domain
+        ON page_links(target_domain);
+        """
+    )
+
+
 def init_database(project_root: Path | None = None) -> Path:
     project_root = project_root or find_project_root()
     config = load_config(project_root)
@@ -418,6 +603,7 @@ def init_database(project_root: Path | None = None) -> Path:
         ensure_discovered_pages_schema(connection)
         ensure_acquisition_schema(connection)
         ensure_validation_schema(connection)
+        ensure_extraction_schema(connection)
 
     return db_path
 

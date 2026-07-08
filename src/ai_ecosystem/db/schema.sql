@@ -332,6 +332,82 @@ ON retention_validation_inputs(sample_id);
 CREATE INDEX IF NOT EXISTS idx_retention_validation_inputs_discovered_page_id
 ON retention_validation_inputs(discovered_page_id);
 
+CREATE TABLE IF NOT EXISTS extracted_pages (
+    extracted_page_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    scraped_page_id INTEGER NOT NULL,
+    extraction_version TEXT NOT NULL,
+    extraction_status TEXT DEFAULT 'pending',
+    markdown_path TEXT,
+    text_path TEXT,
+    metadata_path TEXT,
+    language TEXT,
+    extracted_at TEXT,
+    content_sha256 TEXT,
+    extraction_run_id TEXT,
+    extraction_started_at TEXT,
+    extraction_completed_at TEXT,
+    extraction_error TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (scraped_page_id) REFERENCES scraped_pages(scraped_page_id),
+    FOREIGN KEY (extraction_run_id) REFERENCES extraction_runs(extraction_run_id),
+    UNIQUE(scraped_page_id, extraction_version)
+);
+
+CREATE INDEX IF NOT EXISTS idx_extracted_pages_scraped_page_id
+ON extracted_pages(scraped_page_id);
+
+CREATE INDEX IF NOT EXISTS idx_extracted_pages_extraction_status
+ON extracted_pages(extraction_status);
+
+CREATE TABLE IF NOT EXISTS extraction_runs (
+    extraction_run_id TEXT PRIMARY KEY,
+    sample_id TEXT,
+    extraction_version TEXT,
+    started_at TEXT,
+    finished_at TEXT,
+    selected_pages INTEGER,
+    processed_pages INTEGER,
+    successful_pages INTEGER,
+    skipped_pages INTEGER,
+    failed_pages INTEGER,
+    configuration_hash TEXT
+);
+
+CREATE TABLE IF NOT EXISTS page_features (
+    extracted_page_id INTEGER PRIMARY KEY,
+    title TEXT,
+    word_count INTEGER,
+    heading_count INTEGER,
+    headings TEXT,
+    heading_hierarchy TEXT,
+    paragraph_count INTEGER,
+    page_type_guess TEXT,
+    language TEXT,
+    markdown_path TEXT,
+    text_path TEXT,
+    feature_version TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (extracted_page_id) REFERENCES extracted_pages(extracted_page_id)
+);
+
+CREATE TABLE IF NOT EXISTS page_links (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    extracted_page_id INTEGER NOT NULL,
+    source_url TEXT,
+    target_url TEXT,
+    normalized_target_url TEXT,
+    target_domain TEXT,
+    normalized_target_domain TEXT,
+    anchor_text TEXT,
+    anchor_word_count INTEGER,
+    rel_attribute TEXT,
+    internal_external TEXT,
+    is_internal INTEGER,
+    link_order INTEGER,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (extracted_page_id) REFERENCES extracted_pages(extracted_page_id)
+);
+
 CREATE TABLE IF NOT EXISTS external_links (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     scraped_page_id INTEGER NOT NULL,

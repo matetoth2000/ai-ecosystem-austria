@@ -40,6 +40,7 @@ db/*.sqlite3-*
 # Data directories (NDA-sensitive)
 data/raw/
 data/interim/
+data/extracted/
 data/processed/
 
 # Model/cache artifacts
