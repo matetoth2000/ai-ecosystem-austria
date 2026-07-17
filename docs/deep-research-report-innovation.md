@@ -8,7 +8,7 @@ That distinction matters for scalable website scoring. A company page saying “
 
 The **European Innovation Scoreboard** adds another useful lens. Within business innovation, it separates **innovators**, **linkages**, and **intellectual assets**. That is highly compatible with website scoring: one cluster of signals should capture actual product/process innovation, another should capture collaboration and ecosystem embeddedness, and a third should capture patents, trademarks, designs, licensing, and exploitation. The EIS also treats **public-private co-publications** and SMEs collaborating with others as core innovation indicators, which supports a dedicated collaboration subdimension rather than burying it inside generic R&D. citeturn10view0turn10view1turn10view3
 
-The web-mining literature strongly supports this evidence-first design. Studies using firm websites show that website content can predict firm-level innovation activity, but that **textual content** is more informative than simple metadata, and that websites are better at surfacing **product innovation** and **innovation expenditure** than **process innovation**, partly because process innovation is less visible to website visitors. Keyword-based approaches can work well when the target concept is adequately described by keywords, but the literature also warns that websites are self-reported, multilingual, structurally heterogeneous, and biased toward larger and more patent-active firms. This means the scoring system should prefer **many narrow BM25 query families** with explainable boosts and negatives over a single giant “innovation” query. citeturn38view0turn38view1turn38view2turn38view3turn13view0turn37view0turn37view1turn37view2turn37view3turn14view0
+The web-mining literature strongly supports this evidence-first design. Studies using firm websites show that website content can predict firm-level innovation activity, but that **textual content** is more informative than simple metadata, and that websites are better at surfacing **product innovation** and **innovation expenditure** than **process innovation**, partly because process innovation is less visible to website visitors. Keyword-based approaches can work well when the target concept is adequately described by keywords, but the literature also warns that websites are self-reported, multilingual, structurally heterogeneous, and biased toward larger and more patent-active firms. This means the scoring system should prefer **many narrow query families** with explainable boosts and negatives over a single giant “innovation” query. citeturn38view0turn38view1turn38view2turn38view3turn13view0turn37view0turn37view1turn37view2turn37view3turn14view0
 
 ## Recommended ontology
 
@@ -49,9 +49,9 @@ This structure maps well to the manuals and indicators above. It keeps **formal 
 
 A practical scoring rule is to treat the ontology as a **stack of evidence tiers**. The strongest pages are those that hit **multiple nodes simultaneously** on the same page or closely linked pages—for example, a company page that mentions a **Horizon Europe project**, a **prototype demonstrator**, a **university partner**, and a **patent filing**. Single-node hits still matter, but isolated language such as “innovative solutions” should be weak. This follows both the manuals’ distinction between activities and outcomes and the web-mining literature’s caution that websites contain both signal and self-promotion. citeturn24view3turn31view2turn14view0turn29view0
 
-## Node design for BM25 and keyword-family scoring
+## Node design for query-family and keyword-family scoring
 
-The lexical packets below are **design recommendations synthesized from the cited manuals, CIS/EIS terminology, Horizon Europe, FFG, COMET, CDG, WIPO, and web-mining studies**. They are intended for **BM25 + keyword-family scoring**, not for legal definitions or LLM extraction. citeturn31view0turn33view0turn34view0turn34view1turn34view2turn22search0turn22search2turn40view0turn40view1
+The lexical packets below are **design recommendations synthesized from the cited manuals, CIS/EIS terminology, Horizon Europe, FFG, COMET, CDG, WIPO, and web-mining studies**. They are intended for **query-family and keyword-family scoring**, not for legal definitions or LLM extraction. citeturn31view0turn33view0turn34view0turn34view1turn34view2turn22search0turn22search2turn40view0turn40view1
 
 ### Research and development
 
@@ -173,9 +173,9 @@ I recommend the following handling rules:
 
 A very effective additional rule is to use **proximity constraints**. For example, score “prototype” much higher when it appears within a small window of terms like **validated, tested, TRL, pilot, operational environment, field trial, demonstrator**, and score “patent” much higher when it appears near **application, granted, inventor, licensing, PCT, portfolio**, not in privacy or footer boilerplate. This keeps the system explainable while materially improving precision. citeturn26view0turn28view0turn40view2
 
-## BM25 query families and weighting strategy
+## query families and weighting strategy
 
-The literature suggests that **simple keyword search can be sufficient** when the topic is adequately described by terms and phrases, but also that more precise filtering is needed to separate different actor types and reduce self-promotional noise. For this use case, the best design is not one monolithic innovation query. It is a **family of narrow BM25 queries**, each corresponding to one ontology node, with later score fusion. citeturn37view0turn13view0
+The literature suggests that **simple keyword search can be sufficient** when the topic is adequately described by terms and phrases, but also that more precise filtering is needed to separate different actor types and reduce self-promotional noise. For this use case, the best design is not one monolithic innovation query. It is a **family of narrow query families**, each corresponding to one ontology node, with later score fusion. citeturn37view0turn13view0
 
 A strong production setup would use the following families:
 

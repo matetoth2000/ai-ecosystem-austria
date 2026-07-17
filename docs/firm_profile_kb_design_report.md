@@ -49,7 +49,7 @@ This structure follows the deep research report’s recommended separation betwe
 
 The ontology keeps business concepts separate from marketing concepts. The YAML prioritizes pages that contain concrete verbs, objects, customers, industries, applications, or commercial outcomes. Generic claims such as “leading”, “innovative”, “premium”, “trusted”, and “future-ready” are treated as negative or context-required signals rather than core evidence.
 
-BM25 queries are written as prototypes of company website language, not search-engine queries. Each query represents a distinct retrieval intent likely to appear on pages such as About, Products, Services, Solutions, Industries, Customers, References, Capabilities, and Case Studies.
+query families are written as prototypes of company website language, not search-engine queries. Each query represents a distinct retrieval intent likely to appear on pages such as About, Products, Services, Solutions, Industries, Customers, References, Capabilities, and Case Studies.
 
 English and German coverage is balanced throughout. The knowledge base includes DACH-relevant forms such as `über uns`, `unternehmen`, `leistungen`, `lösungen`, `branchen`, `referenzen`, `fallstudie`, `anwendungsfall`, and `mehrwert`, while preserving common English terminology used on Austrian B2B websites.
 

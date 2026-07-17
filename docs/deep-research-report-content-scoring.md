@@ -85,7 +85,7 @@ On methods, the literature points to a very clear ordering for your case:
 
 | Method | Best role in your system | Suitability |
 |---|---|---|
-| **BM25 / fielded BM25-style scoring** | First-stage page ranking | **Highly suitable** |
+| **Fielded query-family lexical scoring** | First-stage page ranking | **Highly suitable** |
 | **TF-IDF** | Features for rules and simple supervised models | **Highly suitable** |
 | **Char n-grams** | German/English robustness, especially for classification | **Very suitable** |
 | **Linear / shallow supervised classifiers** | If you can label pages | **Very suitable** |
@@ -116,4 +116,4 @@ Finally, retain pages using a **diversified quota policy** rather than pure top-
 
 The bottom-line recommendation is therefore:
 
-Use **Trafilatura-based content extraction**, a **fielded BM25-style lexical scorer**, **URL and internal-link priors**, **bilingual keyword families**, and, if you can label pages, a **small logistic-regression or linear-SVM reranker over TF-IDF plus char n-grams and structure features**. Do **not** start with expensive embeddings or deep models. Add multilingual embeddings only later as a second-stage recall booster if your validation shows consistent misses on semantically relevant German/English pages that lexical methods do not capture. This is the best fit with the literature and with your constraint set: cheap, scalable, reproducible, and useful before any expensive LLM classification. citeturn19view2turn6view0turn22view1turn7view0turn29view0turn27view0
+Use **Trafilatura-based content extraction**, a **fielded query-family lexical scorer**, **URL and internal-link priors**, **bilingual keyword families**, and, if you can label pages, a **small logistic-regression or linear-SVM reranker over TF-IDF plus char n-grams and structure features**. Do **not** start with expensive embeddings or deep models. Add multilingual embeddings only later as a second-stage recall booster if your validation shows consistent misses on semantically relevant German/English pages that lexical methods do not capture. This is the best fit with the literature and with your constraint set: cheap, scalable, reproducible, and useful before any expensive LLM classification. citeturn19view2turn6view0turn22view1turn7view0turn29view0turn27view0

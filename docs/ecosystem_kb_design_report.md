@@ -4,7 +4,7 @@
 
 Ecosystem Knowledge Base v1 is designed for page-level evidence retention in the Austrian AI ecosystem pipeline. It does not score technologies or innovation activity directly. Its purpose is to identify relationship evidence: who is connected to whom, in what role, through what structure, and for what purpose.
 
-The knowledge base follows the same YAML structure and BM25 query style as the Technology and Innovation knowledge bases. BM25 queries are written as short prototypes of real company-website language rather than search syntax. Each query corresponds to a specific relationship intent that may appear on pages such as Partners, Customers, References, Projects, Consortium, Members, Networks, Research, About, Innovation, and Group.
+The knowledge base follows the same YAML structure and query-family style as the Technology and Innovation knowledge bases. query families are written as short prototypes of real company-website language rather than search syntax. Each query corresponds to a specific relationship intent that may appear on pages such as Partners, Customers, References, Projects, Consortium, Members, Networks, Research, About, Innovation, and Group.
 
 ## Selected Ontology
 

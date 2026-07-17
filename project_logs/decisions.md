@@ -403,7 +403,7 @@ Four independent evidence dimensions will be scored:
 
 The scoring architecture is designed around:
 
-- BM25 query families
+- query families
 - multilingual keyword families
 - boost terms
 - negative terms

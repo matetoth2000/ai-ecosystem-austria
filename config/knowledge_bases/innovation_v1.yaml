@@ -2,7 +2,7 @@ version: v1
 
 innovation:
   research_and_development:
-    bm25_queries:
+    query_families:
       - "We conduct research and development for new products, processes and technologies."
       - "Our R&D team works on applied research and experimental development."
       - "We operate a research lab focused on technical validation and novel methods."
@@ -101,7 +101,7 @@ innovation:
         - zukunftssicher
 
   funded_innovation_projects:
-    bm25_queries:
+    query_families:
       - "We participate in Horizon Europe and Horizon 2020 research and innovation projects."
       - "Our funded project includes work packages, milestones, deliverables and consortium partners."
       - "We are an FFG project partner in cooperative R&D and innovation programmes."
@@ -210,7 +210,7 @@ innovation:
         - referenzprojekt
 
   product_and_service_innovation:
-    bm25_queries:
+    query_families:
       - "We launched a new product with improved functionality and technical features."
       - "Our new service was developed in-house and introduced on the market."
       - "We bring product innovations from development into customer deployment."
@@ -302,7 +302,7 @@ innovation:
         - webshop
 
   process_and_operational_innovation:
-    bm25_queries:
+    query_families:
       - "We redesigned production processes to improve efficiency and quality."
       - "Our process automation supports new manufacturing and operational workflows."
       - "We use predictive maintenance and digital twins to improve production systems."
@@ -388,7 +388,7 @@ innovation:
         - workflow-software-händler
 
   prototypes_pilots_and_testbeds:
-    bm25_queries:
+    query_families:
       - "We built a prototype and validated it in a relevant environment."
       - "Our pilot deployment tests the system with customers and validation partners."
       - "We operate a demonstrator, testbed or pilot line for new technology."
@@ -482,7 +482,7 @@ innovation:
         - ui-mockup
 
   patents_ip_and_exploitation:
-    bm25_queries:
+    query_families:
       - "We filed patent applications for our technology and inventions."
       - "Our patent portfolio protects proprietary products, systems and methods."
       - "We license intellectual property and commercialize research results."
@@ -573,7 +573,7 @@ innovation:
         - urheberrecht
 
   research_collaboration_and_ecosystem_linkages:
-    bm25_queries:
+    query_families:
       - "We collaborate with universities and research institutes on joint research projects."
       - "Our consortium partners include competence centres, labs and public-private research organizations."
       - "We work with clusters, hubs and innovation ecosystems on applied research."
@@ -677,7 +677,7 @@ innovation:
         - vertriebspartner
 
   technology_transfer_and_commercialisation:
-    bm25_queries:
+    query_families:
       - "We transfer research results from lab to market through commercialization and licensing."
       - "Our technology transfer office supports spin-offs, startup creation and IP exploitation."
       - "We run an innovation lab, incubator or accelerator for new ventures."
@@ -776,7 +776,7 @@ innovation:
         - kreativlabor
 
   research_outputs_and_scientific_visibility:
-    bm25_queries:
+    query_families:
       - "We publish peer-reviewed research papers, technical reports and conference papers."
       - "Our team releases datasets, open-source software and public repositories."
       - "We present benchmark results, challenge participation and scientific posters."

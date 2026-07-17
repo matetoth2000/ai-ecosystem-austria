@@ -20,6 +20,34 @@ extraction:
   text_directory: text
   overwrite_existing: false
 
+scoring:
+  scoring_profile_id: content_scoring_default
+  scoring_profile_version: v1
+  knowledge_base_directory: config/knowledge_bases
+  required_dimensions:
+    - firm_profile
+    - technology
+    - innovation
+    - ecosystem
+  dimension_weights:
+    firm_profile: 1.0
+    technology: 1.0
+    innovation: 1.0
+    ecosystem: 1.0
+  field_weights:
+    title: 2.0
+    headings: 1.5
+    markdown: 1.0
+    plain_text: 1.0
+    url: 0.5
+    internal_anchor_text: 0.5
+    external_anchor_text: 0.25
+  fusion_weights:
+    query: 1.0
+    keyword: 1.0
+    boost: 0.5
+    negative: -1.0
+
 validation:
   enabled: false
   model: gpt-5-mini

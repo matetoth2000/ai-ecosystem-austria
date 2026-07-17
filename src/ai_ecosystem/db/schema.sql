@@ -408,6 +408,78 @@ CREATE TABLE IF NOT EXISTS page_links (
     FOREIGN KEY (extracted_page_id) REFERENCES extracted_pages(extracted_page_id)
 );
 
+CREATE TABLE IF NOT EXISTS knowledge_bases (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    knowledge_base_id TEXT NOT NULL,
+    knowledge_base_version TEXT NOT NULL,
+    dimension TEXT NOT NULL,
+    source_path TEXT,
+    config_json TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(knowledge_base_id, knowledge_base_version)
+);
+
+CREATE TABLE IF NOT EXISTS scoring_profiles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    scoring_profile_id TEXT NOT NULL,
+    scoring_profile_version TEXT NOT NULL,
+    dimension_weights_json TEXT,
+    field_weights_json TEXT,
+    fusion_weights_json TEXT,
+    config_json TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(scoring_profile_id, scoring_profile_version)
+);
+
+CREATE TABLE IF NOT EXISTS scoring_runs (
+    scoring_run_id TEXT PRIMARY KEY,
+    scoring_profile_id TEXT,
+    scoring_profile_version TEXT,
+    sample_id TEXT,
+    extraction_version TEXT,
+    started_at TEXT,
+    completed_at TEXT,
+    pages_selected INTEGER,
+    pages_processed INTEGER,
+    pages_scored INTEGER,
+    pages_skipped INTEGER,
+    pages_failed INTEGER,
+    runtime_seconds REAL,
+    pages_per_second REAL,
+    status TEXT,
+    configuration_hash TEXT,
+    notes TEXT
+);
+
+CREATE TABLE IF NOT EXISTS page_scores (
+    page_score_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    extracted_page_id INTEGER NOT NULL,
+    scraped_page_id INTEGER,
+    domain TEXT,
+    url TEXT,
+    scoring_run_id TEXT NOT NULL,
+    dimension TEXT NOT NULL,
+    extraction_version TEXT,
+    query_score REAL,
+    keyword_score REAL,
+    boost_score REAL,
+    negative_score REAL,
+    final_score REAL,
+    top_queries_json TEXT,
+    top_keywords_json TEXT,
+    top_boost_terms_json TEXT,
+    top_negative_terms_json TEXT,
+    knowledge_base_id TEXT,
+    knowledge_base_version TEXT,
+    scoring_profile_id TEXT,
+    scoring_profile_version TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (extracted_page_id) REFERENCES extracted_pages(extracted_page_id),
+    FOREIGN KEY (scraped_page_id) REFERENCES scraped_pages(scraped_page_id),
+    FOREIGN KEY (scoring_run_id) REFERENCES scoring_runs(scoring_run_id),
+    UNIQUE(scoring_run_id, extracted_page_id, dimension)
+);
+
 CREATE TABLE IF NOT EXISTS external_links (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     scraped_page_id INTEGER NOT NULL,

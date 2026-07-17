@@ -2,7 +2,7 @@ version: v1
 
 ecosystem:
   strategic_partnerships:
-    bm25_queries:
+    query_families:
       - "We entered a strategic partnership with a named technology or industry partner."
       - "Our long-term partner supports a joint roadmap and co-developed offering."
       - "We signed a framework agreement or memorandum of understanding with our alliance partner."
@@ -78,7 +78,7 @@ ecosystem:
         - reine logo-wand ohne erklärtext
 
   research_collaboration:
-    bm25_queries:
+    query_families:
       - "We collaborate with external partners on applied research and joint development."
       - "Our research cooperation develops prototypes, algorithms, datasets and validation results."
       - "We run collaborative research projects with named companies, labs or institutes."
@@ -148,7 +148,7 @@ ecosystem:
         - marktforschung
 
   university_research_institute_links:
-    bm25_queries:
+    query_families:
       - "We collaborate with universities, research institutes and academic partners."
       - "Our scientific partner is a named university, institute, faculty or research centre."
       - "We work with TU Wien, AIT, FH partners or applied-sciences institutions."
@@ -226,7 +226,7 @@ ecosystem:
         - labor ohne externe organisation
 
   joint_labs_shared_infrastructure:
-    bm25_queries:
+    query_families:
       - "We operate a joint lab or shared facility together with external partners."
       - "Our competence centre, testbed or living lab supports collaborative experimentation."
       - "We established a research platform or demonstration centre with partner organisations."
@@ -291,7 +291,7 @@ ecosystem:
         - plattform ohne partner
 
   funded_project_participation:
-    bm25_queries:
+    query_families:
       - "We are a coordinator, beneficiary or project partner in a Horizon Europe consortium."
       - "Our FFG, COMET, Christian Doppler or Josef Ressel project includes company and scientific partners."
       - "We participate in a funded project with work packages, deliverables and partner lists."
@@ -387,7 +387,7 @@ ecosystem:
         - stellenanzeige
 
   associated_partner_roles:
-    bm25_queries:
+    query_families:
       - "We are an associated partner or observer in the project consortium."
       - "Our advisory partner role supports project implementation without beneficiary funding."
       - "We participate in the stakeholder board, observer group or supporting partner network."
@@ -445,7 +445,7 @@ ecosystem:
         - unterstützungspartner im vertriebskontext
 
   cluster_association_memberships:
-    bm25_queries:
+    query_families:
       - "We are a member of a named cluster, association or innovation network."
       - "Our company is listed in the official member directory of an industry association."
       - "We participate as a founding member, board member or steering group member."
@@ -523,7 +523,7 @@ ecosystem:
         - netzwerk als computernetzwerk
 
   innovation_hubs_testbeds_infrastructures:
-    bm25_queries:
+    query_families:
       - "We work with a European Digital Innovation Hub, TEF or AI Factory."
       - "Our innovation hub offers test before invest, experimentation and access to skills."
       - "We use regulatory sandboxes, testbeds and experimentation facilities for AI adoption."
@@ -598,7 +598,7 @@ ecosystem:
         - kein programm-marker
 
   advisory_boards_working_groups:
-    bm25_queries:
+    query_families:
       - "We serve on an advisory board, steering committee or working group."
       - "Our experts are appointed to an expert panel, task force or council."
       - "We contribute to roadmaps, governance structures and collaborative working groups."
@@ -663,7 +663,7 @@ ecosystem:
         - rein internes gremium
 
   technology_provider_relationships:
-    bm25_queries:
+    query_families:
       - "Our solution is built on a named cloud, data, model or platform provider."
       - "We are a certified technology, cloud, integration or solution partner."
       - "Our product integrates with partner APIs, marketplaces and software platforms."
@@ -734,7 +734,7 @@ ecosystem:
         - kein namentlich genannter anbieter
 
   customer_use_case_relationships:
-    bm25_queries:
+    query_families:
       - "Our customer story describes a named client and deployed use case."
       - "This case study shows implementation, rollout and measurable customer outcomes."
       - "Our reference customer uses the solution in production."
@@ -800,7 +800,7 @@ ecosystem:
         - referenz ohne kundensprache
 
   supplier_oem_integrator_relationships:
-    bm25_queries:
+    query_families:
       - "We work with suppliers, vendors and OEM partners in our value chain."
       - "Our manufacturing partner provides components, hardware or production capacity."
       - "We cooperate with systems integrators, resellers, distributors and channel partners."
@@ -868,7 +868,7 @@ ecosystem:
         - lieferantenkodex ohne beziehung
 
   corporate_group_relationships:
-    bm25_queries:
+    query_families:
       - "We are part of a corporate group with subsidiaries, affiliates and sister companies."
       - "Our company is a wholly owned subsidiary of a named parent company."
       - "The group structure includes holdings, acquisitions and affiliated companies."

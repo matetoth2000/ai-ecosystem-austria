@@ -2,7 +2,7 @@ version: v1
 
 technology:
   artificial_intelligence:
-    bm25_queries:
+    query_families:
       - "We develop machine learning models for industrial and business applications."
       - "Our computer vision systems detect defects and support automated quality inspection."
       - "We build NLP solutions for language, speech and document processing."
@@ -164,7 +164,7 @@ technology:
         - vision
 
   data_and_analytics:
-    bm25_queries:
+    query_families:
       - "We build data platforms for analytics, reporting and decision support."
       - "Our data pipelines integrate information from enterprise systems and external sources."
       - "We design data warehouses, data lakes and lakehouse architectures."
@@ -286,7 +286,7 @@ technology:
         - visualisierung
 
   software_and_cloud:
-    bm25_queries:
+    query_families:
       - "We develop custom software and enterprise applications for business processes."
       - "Our SaaS products provide cloud-based software for customers and partners."
       - "We build cloud-native platforms with microservices, containers and Kubernetes."
@@ -413,7 +413,7 @@ technology:
         - plattform
 
   automation_and_control:
-    bm25_queries:
+    query_families:
       - "We automate production lines, machines and industrial plants."
       - "Our PLC and SCADA systems control processes, machines and facilities."
       - "We implement HMI, MES and industrial control systems for manufacturing."
@@ -539,7 +539,7 @@ technology:
         - steuerung
 
   robotics_and_autonomous_systems:
-    bm25_queries:
+    query_families:
       - "We design and integrate industrial robots and robot cells."
       - "Our collaborative robots support flexible production and assembly."
       - "We develop manipulators, grippers and robotic handling systems."
@@ -653,7 +653,7 @@ technology:
         - software bot
 
   engineering_systems:
-    bm25_queries: []
+    query_families: []
     keywords:
       en:
         - cad
