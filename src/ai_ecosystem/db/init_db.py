@@ -588,6 +588,240 @@ def ensure_extraction_schema(connection: sqlite3.Connection) -> None:
     )
 
 
+def ensure_scoring_schema(connection: sqlite3.Connection) -> None:
+    """Create scoring-stage metadata tables without running scoring."""
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS knowledge_bases (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            knowledge_base_id TEXT NOT NULL,
+            knowledge_base_version TEXT NOT NULL,
+            dimension TEXT NOT NULL,
+            source_path TEXT,
+            config_json TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(knowledge_base_id, knowledge_base_version)
+        );
+        """
+    )
+    knowledge_base_columns = table_columns(connection, "knowledge_bases")
+    knowledge_base_migrations = {
+        "knowledge_base_id": "ALTER TABLE knowledge_bases ADD COLUMN knowledge_base_id TEXT",
+        "knowledge_base_version": "ALTER TABLE knowledge_bases ADD COLUMN knowledge_base_version TEXT",
+        "dimension": "ALTER TABLE knowledge_bases ADD COLUMN dimension TEXT",
+        "source_path": "ALTER TABLE knowledge_bases ADD COLUMN source_path TEXT",
+        "config_json": "ALTER TABLE knowledge_bases ADD COLUMN config_json TEXT",
+        "created_at": "ALTER TABLE knowledge_bases ADD COLUMN created_at TEXT",
+    }
+    for column, statement in knowledge_base_migrations.items():
+        if column not in knowledge_base_columns:
+            connection.execute(statement)
+    connection.execute(
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_knowledge_bases_unique_id_version
+        ON knowledge_bases(knowledge_base_id, knowledge_base_version);
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_knowledge_bases_dimension_version
+        ON knowledge_bases(dimension, knowledge_base_version);
+        """
+    )
+
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS scoring_profiles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            scoring_profile_id TEXT NOT NULL,
+            scoring_profile_version TEXT NOT NULL,
+            dimension_weights_json TEXT,
+            field_weights_json TEXT,
+            fusion_weights_json TEXT,
+            config_json TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(scoring_profile_id, scoring_profile_version)
+        );
+        """
+    )
+    profile_columns = table_columns(connection, "scoring_profiles")
+    profile_migrations = {
+        "scoring_profile_id": "ALTER TABLE scoring_profiles ADD COLUMN scoring_profile_id TEXT",
+        "scoring_profile_version": "ALTER TABLE scoring_profiles ADD COLUMN scoring_profile_version TEXT",
+        "dimension_weights_json": "ALTER TABLE scoring_profiles ADD COLUMN dimension_weights_json TEXT",
+        "field_weights_json": "ALTER TABLE scoring_profiles ADD COLUMN field_weights_json TEXT",
+        "fusion_weights_json": "ALTER TABLE scoring_profiles ADD COLUMN fusion_weights_json TEXT",
+        "config_json": "ALTER TABLE scoring_profiles ADD COLUMN config_json TEXT",
+        "created_at": "ALTER TABLE scoring_profiles ADD COLUMN created_at TEXT",
+    }
+    for column, statement in profile_migrations.items():
+        if column not in profile_columns:
+            connection.execute(statement)
+    connection.execute(
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_scoring_profiles_unique_id_version
+        ON scoring_profiles(scoring_profile_id, scoring_profile_version);
+        """
+    )
+
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS scoring_runs (
+            scoring_run_id TEXT PRIMARY KEY,
+            scoring_profile_id TEXT,
+            scoring_profile_version TEXT,
+            sample_id TEXT,
+            extraction_version TEXT,
+            started_at TEXT,
+            completed_at TEXT,
+            pages_selected INTEGER,
+            pages_processed INTEGER,
+            pages_scored INTEGER,
+            pages_skipped INTEGER,
+            pages_failed INTEGER,
+            runtime_seconds REAL,
+            pages_per_second REAL,
+            status TEXT,
+            configuration_hash TEXT,
+            notes TEXT
+        );
+        """
+    )
+    run_columns = table_columns(connection, "scoring_runs")
+    run_migrations = {
+        "scoring_profile_id": "ALTER TABLE scoring_runs ADD COLUMN scoring_profile_id TEXT",
+        "scoring_profile_version": "ALTER TABLE scoring_runs ADD COLUMN scoring_profile_version TEXT",
+        "sample_id": "ALTER TABLE scoring_runs ADD COLUMN sample_id TEXT",
+        "extraction_version": "ALTER TABLE scoring_runs ADD COLUMN extraction_version TEXT",
+        "started_at": "ALTER TABLE scoring_runs ADD COLUMN started_at TEXT",
+        "completed_at": "ALTER TABLE scoring_runs ADD COLUMN completed_at TEXT",
+        "pages_selected": "ALTER TABLE scoring_runs ADD COLUMN pages_selected INTEGER",
+        "pages_processed": "ALTER TABLE scoring_runs ADD COLUMN pages_processed INTEGER",
+        "pages_scored": "ALTER TABLE scoring_runs ADD COLUMN pages_scored INTEGER",
+        "pages_skipped": "ALTER TABLE scoring_runs ADD COLUMN pages_skipped INTEGER",
+        "pages_failed": "ALTER TABLE scoring_runs ADD COLUMN pages_failed INTEGER",
+        "runtime_seconds": "ALTER TABLE scoring_runs ADD COLUMN runtime_seconds REAL",
+        "pages_per_second": "ALTER TABLE scoring_runs ADD COLUMN pages_per_second REAL",
+        "status": "ALTER TABLE scoring_runs ADD COLUMN status TEXT",
+        "configuration_hash": "ALTER TABLE scoring_runs ADD COLUMN configuration_hash TEXT",
+        "notes": "ALTER TABLE scoring_runs ADD COLUMN notes TEXT",
+    }
+    for column, statement in run_migrations.items():
+        if column not in run_columns:
+            connection.execute(statement)
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_scoring_runs_profile
+        ON scoring_runs(scoring_profile_id, scoring_profile_version);
+        """
+    )
+
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS page_scores (
+            page_score_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            extracted_page_id INTEGER NOT NULL,
+            scraped_page_id INTEGER,
+            domain TEXT,
+            url TEXT,
+            scoring_run_id TEXT NOT NULL,
+            dimension TEXT NOT NULL,
+            extraction_version TEXT,
+            query_score REAL,
+            keyword_score REAL,
+            boost_score REAL,
+            negative_score REAL,
+            final_score REAL,
+            top_queries_json TEXT,
+            top_keywords_json TEXT,
+            top_boost_terms_json TEXT,
+            top_negative_terms_json TEXT,
+            knowledge_base_id TEXT,
+            knowledge_base_version TEXT,
+            scoring_profile_id TEXT,
+            scoring_profile_version TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (extracted_page_id) REFERENCES extracted_pages(extracted_page_id),
+            FOREIGN KEY (scraped_page_id) REFERENCES scraped_pages(scraped_page_id),
+            FOREIGN KEY (scoring_run_id) REFERENCES scoring_runs(scoring_run_id),
+            UNIQUE(scoring_run_id, extracted_page_id, dimension)
+        );
+        """
+    )
+    score_columns = table_columns(connection, "page_scores")
+    historical_query_score_column = "bm" + "25_score"
+    if historical_query_score_column in score_columns and "query_score" not in score_columns:
+        connection.execute(
+            f"ALTER TABLE page_scores RENAME COLUMN {historical_query_score_column} TO query_score"
+        )
+        score_columns = table_columns(connection, "page_scores")
+    score_migrations = {
+        "scraped_page_id": "ALTER TABLE page_scores ADD COLUMN scraped_page_id INTEGER",
+        "domain": "ALTER TABLE page_scores ADD COLUMN domain TEXT",
+        "url": "ALTER TABLE page_scores ADD COLUMN url TEXT",
+        "extraction_version": "ALTER TABLE page_scores ADD COLUMN extraction_version TEXT",
+        "query_score": "ALTER TABLE page_scores ADD COLUMN query_score REAL",
+        "keyword_score": "ALTER TABLE page_scores ADD COLUMN keyword_score REAL",
+        "boost_score": "ALTER TABLE page_scores ADD COLUMN boost_score REAL",
+        "negative_score": "ALTER TABLE page_scores ADD COLUMN negative_score REAL",
+        "final_score": "ALTER TABLE page_scores ADD COLUMN final_score REAL",
+        "top_queries_json": "ALTER TABLE page_scores ADD COLUMN top_queries_json TEXT",
+        "top_keywords_json": "ALTER TABLE page_scores ADD COLUMN top_keywords_json TEXT",
+        "top_boost_terms_json": "ALTER TABLE page_scores ADD COLUMN top_boost_terms_json TEXT",
+        "top_negative_terms_json": "ALTER TABLE page_scores ADD COLUMN top_negative_terms_json TEXT",
+        "knowledge_base_id": "ALTER TABLE page_scores ADD COLUMN knowledge_base_id TEXT",
+        "knowledge_base_version": "ALTER TABLE page_scores ADD COLUMN knowledge_base_version TEXT",
+        "scoring_profile_id": "ALTER TABLE page_scores ADD COLUMN scoring_profile_id TEXT",
+        "scoring_profile_version": "ALTER TABLE page_scores ADD COLUMN scoring_profile_version TEXT",
+        "created_at": "ALTER TABLE page_scores ADD COLUMN created_at TEXT",
+    }
+    for column, statement in score_migrations.items():
+        if column not in score_columns:
+            connection.execute(statement)
+    connection.execute(
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_page_scores_unique_run_page_dimension
+        ON page_scores(scoring_run_id, extracted_page_id, dimension);
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_page_scores_extracted_page_id
+        ON page_scores(extracted_page_id);
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_page_scores_scraped_page_id
+        ON page_scores(scraped_page_id);
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_page_scores_run_dimension
+        ON page_scores(scoring_run_id, dimension);
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_page_scores_domain_dimension
+        ON page_scores(domain, dimension);
+        """
+    )
+    connection.execute(
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_page_scores_score_identity
+        ON page_scores(
+            extracted_page_id,
+            dimension,
+            extraction_version,
+            knowledge_base_version,
+            scoring_profile_version
+        );
+        """
+    )
+
+
 def init_database(project_root: Path | None = None) -> Path:
     project_root = project_root or find_project_root()
     config = load_config(project_root)
@@ -604,6 +838,7 @@ def init_database(project_root: Path | None = None) -> Path:
         ensure_acquisition_schema(connection)
         ensure_validation_schema(connection)
         ensure_extraction_schema(connection)
+        ensure_scoring_schema(connection)
 
     return db_path
 

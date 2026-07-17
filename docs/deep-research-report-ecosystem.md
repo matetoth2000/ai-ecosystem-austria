@@ -84,11 +84,11 @@ The best lexicon design is **family-based and bilingual**: one keyword family pe
 
 Across all families, the **highest-value official boost terms** are the formal role and programme labels that already encode relation semantics: `Horizon Europe`, `CORDIS`, `beneficiary`, `associated partner`, `coordinator`, `consortium`, `company partner`, `scientific partner`, `FFG`, `COMET`, `Christian Doppler Laboratory`, `Josef Ressel Centre`, `EDIH`, `TEF`, `EIT KIC`, `COST Action`, `Enterprise Europe Network`, `AI Factory`, and `AI-on-Demand`. These terms deserve extra weight because they are both high-precision and later graph-relevant. citeturn8view9turn8view5turn8view6turn17search3turn16view2turn16view1turn16view0turn16view3turn21search7turn24search0turn24search10
 
-## BM25 query families
+## query families
 
-For large-scale scoring, I would not run one master “ecosystem” query. I would run **typed BM25 families** and keep separate scores per relation class. That is more scalable, more explainable, and much better for later graph construction because each family already implies a candidate edge type. The families below align well with the ecosystem literature, the web-mining evidence, and current EU/Austrian programme terminology. citeturn12view3turn18view0turn8view4turn27view0
+For large-scale scoring, I would not run one master “ecosystem” query. I would run **typed query families** and keep separate scores per relation class. That is more scalable, more explainable, and much better for later graph construction because each family already implies a candidate edge type. The families below align well with the ecosystem literature, the web-mining evidence, and current EU/Austrian programme terminology. citeturn12view3turn18view0turn8view4turn27view0
 
-| Query family | BM25-style core terms | Boost terms | Exclusions | Best page types |
+| Query family | Query-family core terms | Boost terms | Exclusions | Best page types |
 |---|---|---|---|---|
 | Strategic partnership | `partner* OR partnership OR alliance OR cooperation OR Kooperation OR Partnerschaft` | `strategic OR long-term OR joint OR framework OR MoU OR co-development OR roadmap` + named organisation | social / careers / privacy / newsletter | `/partners/`, `/alliance/`, `/news/`, announcement pages |
 | Research collaboration | `research OR R&D OR F&E OR FuE OR Forschungskooperation OR co-development` | `prototype OR demonstrator OR validation OR algorithm OR dataset OR publication` + named organisation | internal R&D only | `/research/`, `/innovation/`, `/projects/`, lab pages |
@@ -104,7 +104,7 @@ For large-scale scoring, I would not run one master “ecosystem” query. I wou
 | Ownership / group | `group OR subsidiary OR parent company OR affiliate OR Tochtergesellschaft OR Holding` | `owned by OR part of OR belongs to OR acquisition OR Konzern` | none, but keep separate score channel | `/group/`, `/about/`, legal/corporate-structure pages |
 | Negative family | `linkedin OR instagram OR youtube OR facebook OR x OR newsletter OR privacy OR cookie OR legal OR impressum OR datenschutz` | footer position, repeated sitewide anchors | — | footer, legal, social, marketing boilerplate |
 
-A practical BM25 design choice is to score these families over **zones** rather than over raw page text only. In other words, run each family against `title`, `H1/H2`, `URL slug`, `anchor text`, and `body`, and keep the zone-level evidence for explanation. A hit on `title + H1 + URL` for `funded_project_participation` should mean something very different from a weak body-only hit for the same family. That design is consistent with the fact that hyperlinks and webpage text are most useful when interpreted together and in context. citeturn12view3turn18view0
+A practical query-family design choice is to score these families over **zones** rather than over raw page text only. In other words, run each family against `title`, `H1/H2`, `URL slug`, `anchor text`, and `body`, and keep the zone-level evidence for explanation. A hit on `title + H1 + URL` for `funded_project_participation` should mean something very different from a weak body-only hit for the same family. That design is consistent with the fact that hyperlinks and webpage text are most useful when interpreted together and in context. citeturn12view3turn18view0
 
 ## Strong signals for meaningful ecosystem participation
 
@@ -142,7 +142,7 @@ For scalability, I would score **pages first**, not domains. Each page gets a pe
 A practical architecture is:
 
 1. **Boilerplate-aware page processing.** Remove navigation, footer, cookie banners, and sitewide partner/logo widgets when possible.
-2. **Relation-family scoring.** Run the BM25 families separately, by zone.
+2. **Relation-family scoring.** Run the query families separately, by zone.
 3. **Entity linking.** Match named organisations from text, anchors, link targets, and image alt text if available.
 4. **Evidence bundling.** Combine text hits, relation terms, zone weights, named entities, and outbound links into a typed evidence record.
 5. **Edge emission.** Emit graph edges only when evidence crosses a family-specific threshold.
@@ -183,4 +183,4 @@ My bottom-line recommendation is to make **meaningful ecosystem participation** 
 - named strategic partnerships,
 - named customer deployments and technology-provider ties,
 
-while keeping **corporate group** and **generic social/media/marketing** signals in separate channels. That design is the best fit for scalability, multilingual robustness, explainability, BM25-style scoring, and later graph construction. citeturn8view9turn27view0turn16view1turn16view2turn24search0turn19view0turn12view3
+while keeping **corporate group** and **generic social/media/marketing** signals in separate channels. That design is the best fit for scalability, multilingual robustness, explainability, query-family lexical scoring, and later graph construction. citeturn8view9turn27view0turn16view1turn16view2turn24search0turn19view0turn12view3

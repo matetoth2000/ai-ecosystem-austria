@@ -4,7 +4,7 @@
 
 Innovation Knowledge Base v1 is designed for page-level content scoring in the Austrian AI ecosystem pipeline. Its role is not to detect AI directly. Its role is to retain pages that contain strong evidence about organized innovation activity, research and development, prototypes, funded projects, intellectual property, research collaboration, commercialization, and scientific visibility.
 
-The knowledge base follows the same YAML structure and BM25 query philosophy as Technology Knowledge Base v1. BM25 queries are written as short prototypes of company-website language rather than search-engine syntax. Each query represents a distinct retrieval intent that may appear independently on pages such as Innovation, Research, Development, Projects, Products, Technology, Engineering, Capabilities, Publications, and Partnerships.
+The knowledge base follows the same YAML structure and query-family philosophy as Technology Knowledge Base v1. query families are written as short prototypes of company-website language rather than search-engine syntax. Each query represents a distinct retrieval intent that may appear independently on pages such as Innovation, Research, Development, Projects, Products, Technology, Engineering, Capabilities, Publications, and Partnerships.
 
 ## Selected Ontology
 
@@ -50,11 +50,11 @@ Funded projects, prototypes, and collaborations are also separated rather than m
 
 The technology-transfer node combines the report's innovation structures, spinouts, commercialization, incubators, accelerators, and technology-transfer content. These are conceptually related as market-translation infrastructure and do not need separate top-level scoring nodes in v1.
 
-The BM25 query families are intentionally bilingual and concept-focused. Each major English retrieval intent has a German counterpart where the report provides German terminology. The queries avoid implementation wording and instead approximate how firms describe themselves: "We participate in Horizon Europe projects", "Wir betreiben Forschung und Entwicklung", or "Our pilot deployment tests the system with customers".
+The query families are intentionally bilingual and concept-focused. Each major English retrieval intent has a German counterpart where the report provides German terminology. The queries avoid implementation wording and instead approximate how firms describe themselves: "We participate in Horizon Europe projects", "Wir betreiben Forschung und Entwicklung", or "Our pilot deployment tests the system with customers".
 
 ## Departures From the Research Report
 
-The deep research report proposes a hierarchical ontology. Innovation KB v1 flattens that hierarchy into top-level nodes. This is a deliberate implementation simplification for reviewability and page-level scoring. The subordinate concepts are preserved through BM25 query families, keywords, boosts, and negatives.
+The deep research report proposes a hierarchical ontology. Innovation KB v1 flattens that hierarchy into top-level nodes. This is a deliberate implementation simplification for reviewability and page-level scoring. The subordinate concepts are preserved through query families, keywords, boosts, and negatives.
 
 The report includes innovation management and acquisition of tangible assets in the conceptual discussion. These were not made standalone nodes because they are less directly useful for evidence retention in the AI ecosystem pipeline. Related terms are represented only where they support stronger evidence such as process innovation, funded projects, or technology transfer.
 

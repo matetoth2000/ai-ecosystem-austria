@@ -2,7 +2,7 @@ version: v1
 
 firm_profile:
   company_description:
-    bm25_queries:
+    query_families:
       - "We are a company that develops, manufactures or provides products and services for our customers."
       - "Our company profile explains who we are, what we do and which business we operate."
       - "We are a provider, manufacturer, developer, supplier or specialist in our field."
@@ -85,7 +85,7 @@ firm_profile:
         - team
 
   business_activity_statements:
-    bm25_queries:
+    query_families:
       - "We develop and build systems, products or software for customer applications."
       - "We design, engineer, manufacture and produce concrete technical or commercial outputs."
       - "We integrate and implement systems for customers and business processes."
@@ -186,7 +186,7 @@ firm_profile:
         - unterstützen
 
   products:
-    bm25_queries:
+    query_families:
       - "Our products include concrete devices, machines, tools, modules or equipment."
       - "Our software products and apps are offered as part of a product portfolio."
       - "Our product overview presents product families, models, features and specifications."
@@ -268,7 +268,7 @@ firm_profile:
         - produktivität
 
   services:
-    bm25_queries:
+    query_families:
       - "Our services include consulting, implementation, integration and engineering."
       - "We provide maintenance, support, training and managed services for customers."
       - "Our service portfolio explains how we deliver projects and support operations."
@@ -351,7 +351,7 @@ firm_profile:
         - servicedesk
 
   solutions_platforms:
-    bm25_queries:
+    query_families:
       - "Our solutions solve concrete business or technical problems for specific customer needs."
       - "We offer industry solutions and business solutions for defined applications."
       - "Our platform supports a specific workflow, task or operational process."
@@ -422,7 +422,7 @@ firm_profile:
         - zukunftssicher
 
   industries_markets:
-    bm25_queries:
+    query_families:
       - "We serve specific industries, sectors, verticals and market segments."
       - "Our solutions are used in automotive, healthcare, manufacturing, energy or logistics."
       - "Our applications address defined markets, geographies and customer segments."
@@ -495,7 +495,7 @@ firm_profile:
         - marktnachrichten
 
   customers_references:
-    bm25_queries:
+    query_families:
       - "Our customers and clients use our products, services or solutions."
       - "Our references show selected customers, customer names and commercial deployments."
       - "Customer testimonials and success stories describe how clients use our offerings."
@@ -557,7 +557,7 @@ firm_profile:
         - referenzen ohne kundenkontext
 
   case_studies_use_cases:
-    bm25_queries:
+    query_families:
       - "Our case study explains the customer challenge, our solution and the results."
       - "This use case shows how our product or service was implemented for a customer."
       - "Our reference project describes deployment, implementation and example application."
@@ -620,7 +620,7 @@ firm_profile:
         - projekt ohne kundenkontext
 
   competencies_capabilities:
-    bm25_queries:
+    query_families:
       - "Our capabilities describe the expertise, competences and specializations we bring to customers."
       - "Our competence areas explain the technical and business fields where we have experience."
       - "Our engineering and domain expertise supports customer projects and applications."
@@ -685,7 +685,7 @@ firm_profile:
         - zukunftssicher
 
   value_proposition:
-    bm25_queries:
+    query_families:
       - "Our value proposition explains how customers reduce costs, improve quality or increase efficiency."
       - "We help customers improve reliability, scalability, compliance and operational performance."
       - "Customers choose us because our offering creates measurable benefits and advantages."

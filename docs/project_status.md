@@ -256,7 +256,7 @@ Extended the extraction runner to write deterministic evidence packages under `d
 
 ### Key Findings
 
-- Plain text is derived from Trafilatura Markdown with light Markdown-syntax cleanup for BM25 and keyword search.
+- Plain text is derived from Trafilatura Markdown with light Markdown-syntax cleanup for query-family and keyword search.
 - `content_sha256` is computed from normalized plain text for future change detection and reproducibility.
 - `extracted_pages` now stores `markdown_path`, `text_path`, `metadata_path`, and `content_sha256`; extracted content itself remains outside SQLite.
 - Existing metadata-only successful extractions are reprocessed until canonical package paths exist.
@@ -342,3 +342,220 @@ Milestone 3B.5 is complete. Extraction QA reports indicate that extraction is ro
 ### Next Recommended Milestone
 
 Proceed to semantic extraction validation, while monitoring short-page and duplicate-content effects before finalizing content-scoring thresholds.
+
+## 2026-07-08 — Milestone 4.1: Scoring Schema & Configuration Foundations
+
+### Date
+
+2026-07-08
+
+### Ticket / Milestone
+
+Milestone 4.1 — Scoring Schema & Configuration Foundations
+
+### Objective
+
+Prepare the database and configuration layer for the content scoring engine without scoring pages.
+
+### Implementation Summary
+
+Added scoring-stage SQLite tables, scoring configuration, knowledge-base/profile loading helpers, required-dimension validation, and tests for fresh schema creation, migration-safe initialization, and configuration loading.
+
+### Key Findings
+
+- `knowledge_bases`, `scoring_profiles`, `scoring_runs`, and `page_scores` are now available through fresh schema creation and idempotent migrations.
+- `page_scores` can store query, keyword, boost, negative, and final score components plus top-match JSON and knowledge-base/profile version provenance.
+- The scoring profile config defines required dimensions, dimension weights, field weights, and query/keyword/boost/negative fusion weights.
+- Existing knowledge-base YAML files for `firm_profile`, `technology`, `innovation`, and `ecosystem` are readable and validated as required dimensions.
+- Verification passed with 104 unit tests, compileall, and `ai_ecosystem.db.init_db`.
+- No scoring engine, retention logic, or OpenAI calls were added.
+
+### Current Status
+
+Milestone 4.1 is complete. The project is ready to implement the first content scoring engine against extracted evidence packages.
+
+### Next Recommended Milestone
+
+Implement the read-only content scoring engine that computes page scores from extracted evidence packages and the four configured knowledge bases.
+
+## 2026-07-08 — Milestone 4.2: Core Content Scoring Engine
+
+### Date
+
+2026-07-08
+
+### Ticket / Milestone
+
+Milestone 4.2 — Core Content Scoring Engine
+
+### Objective
+
+Implement a reusable, database-free scoring library that scores a single extracted page in memory.
+
+### Implementation Summary
+
+Added `ContentScorer`, structured page input/result dataclasses, deterministic weighted query-family lexical scoring, exact normalized phrase matching for keywords/boost/negative terms, configurable field weighting, configurable fusion, and explainability output for the four scoring dimensions.
+
+### Key Findings
+
+- The scorer operates only in memory and has no SQLite dependency.
+- The query-family component uses deterministic query-term saturation over weighted fields and intentionally does not approximate corpus-wide IDF.
+- Keyword, boost, and negative matching supports exact normalized multi-word phrases and single-word token matches across English and German terms.
+- Field weights now explicitly cover title, headings, markdown, plain text, URL, internal anchor text, and external anchor text, with legacy `text` and `anchor_text` fallback support.
+- Results expose query, keyword, boost, negative, and final scores plus top query/term matches for later serialization.
+- Verification passed with 113 unit tests and compileall.
+- No corpus scoring loop, scoring runs, SQLite writes, reports, retention logic, embeddings, or OpenAI calls were added.
+
+### Current Status
+
+Milestone 4.2 is complete. The project now has the core single-page scoring library needed by the future scoring pipeline.
+
+### Next Recommended Milestone
+
+Implement the scoring runner that applies the core scorer to selected extracted pages and persists `page_scores` through tracked `scoring_runs`.
+
+## 2026-07-15 — Milestone 4.2a: Query-Family Scoring Terminology Migration
+
+### Date
+
+2026-07-15
+
+### Ticket / Milestone
+
+Milestone 4.2a — Project-wide Terminology Migration to Query-Family Scoring
+
+### Objective
+
+Rename the implemented single-page lexical query component so project terminology matches the actual method.
+
+### Implementation Summary
+
+Renamed the legacy implementation-facing query terminology to query-family terminology across the scorer API, configuration, knowledge-base YAML keys, SQLite schema/migrations, tests, and project documentation while preserving scoring behavior.
+
+### Key Findings
+
+- The score field for query-family matches is now `query_score`.
+- Knowledge-base query lists now use `query_families`.
+- The fusion weight key is now `query`.
+- The implemented method is documented as a deterministic weighted query-family lexical scorer.
+- The method uses weighted lexical overlap, query normalization, stopword removal, frequency saturation, and configurable field weights.
+- The method intentionally does not use corpus IDF, document frequency, document-length normalization, or corpus indexing.
+- Numerical scoring behavior was intentionally preserved.
+
+### Current Status
+
+The scoring terminology is now methodologically aligned with the implementation and ready for thesis-facing documentation.
+
+### Next Recommended Milestone
+
+Implement the scoring runner that applies the core scorer to selected extracted pages and persists `page_scores` through tracked `scoring_runs`.
+
+## 2026-07-15 — Milestone 4.3: Corpus Scoring Runner & Score Persistence
+
+### Date
+
+2026-07-15
+
+### Ticket / Milestone
+
+Milestone 4.3 — Corpus Scoring Runner & Score Persistence
+
+### Objective
+
+Implement the corpus-level scoring runner that applies the existing `ContentScorer` to extracted evidence packages and persists per-dimension scores.
+
+### Implementation Summary
+
+Added `python -m ai_ecosystem.scoring.run_scoring` with sample, page-limit, domain, force-refresh, and progress controls. The runner selects successful extracted pages, builds `PageScoringInput` from evidence packages plus optional features and link anchors, persists `scoring_runs` and `page_scores`, enforces score identity independent of run ID, and writes scoring reports under `data/interim/scoring/<scoring_run_id>/`.
+
+### Key Findings
+
+- Pilot run `scoring_20260715T131248Z_f305ef18` scored `main_v1`.
+- Pages selected: 599; processed: 599; scored: 599; skipped: 0; failed: 0.
+- Score rows written: 2,396, covering firm profile, technology, innovation, and ecosystem for every scored page.
+- Runtime was 76.6 seconds at 7.82 pages/sec.
+- Reports were generated in `data/interim/scoring/scoring_20260715T131248Z_f305ef18/`.
+- Verification passed with 118 unit tests, compileall, and idempotent DB initialization.
+- No scoring math, knowledge bases, retention logic, embeddings, or OpenAI calls were changed.
+
+### Current Status
+
+Milestone 4.3 is complete. Corpus scoring is operational for extracted evidence packages, with persisted scores and reproducible run-level reporting.
+
+### Next Recommended Milestone
+
+Review scoring distributions and representative examples before designing retention thresholds or score-based retention policy.
+
+## 2026-07-17 — Milestone 4.4: LLM-Assisted Scoring Evaluation
+
+### Date
+
+2026-07-17
+
+### Ticket / Milestone
+
+Milestone 4.4 — LLM-Assisted Scoring Evaluation
+
+### Objective
+
+Prepare high-scoring pages for qualitative GPT review without changing scoring, knowledge bases, or retention behavior.
+
+### Implementation Summary
+
+Added `python -m ai_ecosystem.scoring.evaluate_scoring`, a read-only package generator that selects the top scored pages per dimension, writes one Markdown review file per selected dimension/page pair, creates a reusable GPT evaluation prompt, and records package metadata in `manifest.json`.
+
+### Key Findings
+
+- Evaluation package generated for scoring run `scoring_20260715T131248Z_f305ef18`.
+- Output directory: `data/interim/scoring_evaluation/scoring_20260715T131248Z_f305ef18/`.
+- Generated 80 review files: top 20 pages for each of firm profile, technology, innovation, and ecosystem.
+- Generated `evaluation_prompt.md` and `manifest.json`.
+- Package warnings: 0.
+- Verification passed with 122 unit tests and compileall.
+- No OpenAI calls, retention decisions, scoring changes, or knowledge-base changes were made.
+
+### Current Status
+
+Milestone 4.4 is complete. The project now has a reusable manual/GPT review package for inspecting whether high scoring pages are genuinely useful and whether score components are justified.
+
+### Next Recommended Milestone
+
+Manually review the scoring evaluation package, document recurring false positives and useful evidence patterns, then decide whether score calibration or retention-policy design should come next.
+
+## 2026-07-17 — Milestone 4.5: Automated LLM Scoring Evaluation
+
+### Date
+
+2026-07-17
+
+### Ticket / Milestone
+
+Milestone 4.5 — Automated LLM Scoring Evaluation
+
+### Objective
+
+Automatically evaluate high-scoring page review files with the OpenAI Responses API to identify scoring strengths, false positives, and retention-design evidence.
+
+### Implementation Summary
+
+Added `python -m ai_ecosystem.scoring.run_llm_evaluation`, which reads a scoring evaluation package, evaluates each page Markdown file with strict JSON output, supports resumable execution, and writes page-level plus aggregate Markdown/JSON reports.
+
+### Key Findings
+
+- Evaluation directory: `/Users/matetoth/TU_Data_Science_MSc/ai-ecosystem-austria/data/interim/scoring_evaluation/scoring_20260715T131248Z_f305ef18`.
+- Output directory: `/Users/matetoth/TU_Data_Science_MSc/ai-ecosystem-austria/data/interim/scoring_evaluation/scoring_20260715T131248Z_f305ef18/llm_evaluation_gpt-5`.
+- Model: `gpt-5`.
+- Pages evaluated: 80 / 80.
+- Pages failed: 0.
+- Total tokens: 551229.
+- Estimated cost USD: 2.229027.
+- Generated `page_evaluations.json`, `page_evaluations.md`, `evaluation_summary.json`, and `evaluation_summary.md`.
+- No scores, knowledge bases, retention logic, SQLite scoring tables, or evidence packages were modified.
+
+### Current Status
+
+Milestone 4.5 is complete. The project now has automated qualitative evaluation outputs for the high-scoring page review package.
+
+### Next Recommended Milestone
+
+Review the LLM evaluation findings and decide whether to calibrate scoring, adjust knowledge-base terms, or design the first score-based retention policy.

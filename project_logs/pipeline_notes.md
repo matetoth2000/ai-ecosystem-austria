@@ -245,7 +245,7 @@ Extraction stage responsibilities:
 
 Scoring stage (future):
 
-- BM25 retrieval
+- query-family lexical scoring
 - Multilingual keyword-family scoring
 - Independent scores for:
   - Firm Profile
