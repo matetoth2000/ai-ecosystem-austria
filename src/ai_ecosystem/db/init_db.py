@@ -42,6 +42,75 @@ def table_columns(connection: sqlite3.Connection, table_name: str) -> set[str]:
     return {row[1] for row in connection.execute(f"PRAGMA table_info({table_name});").fetchall()}
 
 
+def ensure_sample_registry_schema(connection: sqlite3.Connection) -> None:
+    """Keep generic domain- and company-sample registry storage compatible."""
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS sample_sets (
+            sample_id TEXT PRIMARY KEY,
+            sample_name TEXT NOT NULL,
+            sample_description TEXT,
+            source_csv TEXT,
+            sampling_strategy TEXT,
+            sampling_seed INTEGER,
+            sample_size INTEGER,
+            sample_unit TEXT NOT NULL DEFAULT 'domain',
+            config_id TEXT,
+            config_version TEXT,
+            config_hash TEXT,
+            domain_count INTEGER,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+    sample_set_columns = table_columns(connection, "sample_sets")
+    migrations = {
+        "sample_unit": "ALTER TABLE sample_sets ADD COLUMN sample_unit TEXT NOT NULL DEFAULT 'domain'",
+        "config_id": "ALTER TABLE sample_sets ADD COLUMN config_id TEXT",
+        "config_version": "ALTER TABLE sample_sets ADD COLUMN config_version TEXT",
+        "config_hash": "ALTER TABLE sample_sets ADD COLUMN config_hash TEXT",
+        "domain_count": "ALTER TABLE sample_sets ADD COLUMN domain_count INTEGER",
+    }
+    for column, statement in migrations.items():
+        if column not in sample_set_columns:
+            connection.execute(statement)
+    connection.execute("UPDATE sample_sets SET sample_unit = 'domain' WHERE sample_unit IS NULL OR sample_unit = ''")
+
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS sample_domains (
+            sample_id TEXT NOT NULL,
+            domain TEXT NOT NULL,
+            sample_rank INTEGER,
+            FOREIGN KEY (sample_id) REFERENCES sample_sets(sample_id),
+            UNIQUE(sample_id, domain)
+        )
+        """
+    )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS sample_companies (
+            sample_id TEXT NOT NULL,
+            company_id TEXT NOT NULL,
+            sample_rank INTEGER NOT NULL,
+            nace_code TEXT,
+            nace_description TEXT,
+            enrichment_stratum TEXT,
+            normalized_domain TEXT,
+            sampling_seed INTEGER,
+            selection_reason TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (sample_id) REFERENCES sample_sets(sample_id),
+            FOREIGN KEY (company_id) REFERENCES firms(bvd_id),
+            UNIQUE(sample_id, company_id),
+            UNIQUE(sample_id, sample_rank)
+        )
+        """
+    )
+    connection.execute("CREATE INDEX IF NOT EXISTS idx_sample_companies_company ON sample_companies(company_id)")
+    connection.execute("CREATE INDEX IF NOT EXISTS idx_sample_companies_sample_rank ON sample_companies(sample_id, sample_rank)")
+
+
 def ensure_acquisition_schema(connection: sqlite3.Connection) -> None:
     """Apply small acquisition schema upgrades for existing development DBs."""
     scraped_columns = table_columns(connection, "scraped_pages")
@@ -822,6 +891,277 @@ def ensure_scoring_schema(connection: sqlite3.Connection) -> None:
     )
 
 
+def ensure_company_relevance_schema(connection: sqlite3.Connection) -> None:
+    """Keep deprecated company-relevance tables readable for old development DBs.
+
+    These tables belonged to the experimental deterministic company relevance
+    classifier. Current Milestone 5 work is calibration-first, so this function
+    only preserves historical schema compatibility and must not be interpreted
+    as an active classifier runtime.
+    """
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS company_relevance_runs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            classifier_id TEXT NOT NULL,
+            classifier_version TEXT NOT NULL,
+            config_id TEXT NOT NULL,
+            config_version TEXT NOT NULL,
+            config_hash TEXT NOT NULL,
+            status TEXT NOT NULL CHECK (status IN ('pending', 'running', 'completed', 'completed_with_errors', 'completed_with_failures', 'failed')),
+            started_at TEXT,
+            completed_at TEXT,
+            selected_count INTEGER DEFAULT 0,
+            processed_count INTEGER DEFAULT 0,
+            reused_count INTEGER DEFAULT 0,
+            keep_count INTEGER DEFAULT 0,
+            exclude_count INTEGER DEFAULT 0,
+            unknown_count INTEGER DEFAULT 0,
+            failed_count INTEGER DEFAULT 0,
+            runtime_seconds REAL,
+            companies_per_second REAL,
+            scoring_run_id TEXT,
+            scoring_context_json TEXT,
+            failure_json TEXT,
+            run_scope TEXT DEFAULT 'smoke',
+            is_production_candidate INTEGER DEFAULT 0,
+            notes TEXT,
+            run_config_json TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+        """
+    )
+
+
+def ensure_calibration_schema(connection: sqlite3.Connection) -> None:
+    """Create migration-safe storage for scorer-blind calibration experiments."""
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS calibration_runs (
+            calibration_run_id TEXT PRIMARY KEY, package_run_id TEXT NOT NULL,
+            sample_id TEXT, model TEXT NOT NULL, reasoning_effort TEXT NOT NULL,
+            prompt_id TEXT NOT NULL, prompt_version TEXT NOT NULL, prompt_hash TEXT NOT NULL,
+            status TEXT NOT NULL, started_at TEXT, completed_at TEXT,
+            selected_count INTEGER DEFAULT 0, completed_count INTEGER DEFAULT 0,
+            failed_count INTEGER DEFAULT 0, keep_count INTEGER DEFAULT 0,
+            unknown_count INTEGER DEFAULT 0, exclude_count INTEGER DEFAULT 0,
+            input_tokens INTEGER DEFAULT 0, output_tokens INTEGER DEFAULT 0,
+            reasoning_tokens INTEGER DEFAULT 0, total_tokens INTEGER DEFAULT 0,
+            estimated_cost_usd REAL, runtime_seconds REAL, run_config_json TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    run_columns = table_columns(connection, "calibration_runs")
+    for column, statement in {
+        "package_run_id": "ALTER TABLE calibration_runs ADD COLUMN package_run_id TEXT",
+        "sample_id": "ALTER TABLE calibration_runs ADD COLUMN sample_id TEXT",
+        "model": "ALTER TABLE calibration_runs ADD COLUMN model TEXT",
+        "reasoning_effort": "ALTER TABLE calibration_runs ADD COLUMN reasoning_effort TEXT",
+        "prompt_id": "ALTER TABLE calibration_runs ADD COLUMN prompt_id TEXT",
+        "prompt_version": "ALTER TABLE calibration_runs ADD COLUMN prompt_version TEXT",
+        "prompt_hash": "ALTER TABLE calibration_runs ADD COLUMN prompt_hash TEXT",
+        "status": "ALTER TABLE calibration_runs ADD COLUMN status TEXT",
+        "started_at": "ALTER TABLE calibration_runs ADD COLUMN started_at TEXT",
+        "completed_at": "ALTER TABLE calibration_runs ADD COLUMN completed_at TEXT",
+        "selected_count": "ALTER TABLE calibration_runs ADD COLUMN selected_count INTEGER DEFAULT 0",
+        "completed_count": "ALTER TABLE calibration_runs ADD COLUMN completed_count INTEGER DEFAULT 0",
+        "failed_count": "ALTER TABLE calibration_runs ADD COLUMN failed_count INTEGER DEFAULT 0",
+        "keep_count": "ALTER TABLE calibration_runs ADD COLUMN keep_count INTEGER DEFAULT 0",
+        "unknown_count": "ALTER TABLE calibration_runs ADD COLUMN unknown_count INTEGER DEFAULT 0",
+        "exclude_count": "ALTER TABLE calibration_runs ADD COLUMN exclude_count INTEGER DEFAULT 0",
+        "input_tokens": "ALTER TABLE calibration_runs ADD COLUMN input_tokens INTEGER DEFAULT 0",
+        "output_tokens": "ALTER TABLE calibration_runs ADD COLUMN output_tokens INTEGER DEFAULT 0",
+        "reasoning_tokens": "ALTER TABLE calibration_runs ADD COLUMN reasoning_tokens INTEGER DEFAULT 0",
+        "total_tokens": "ALTER TABLE calibration_runs ADD COLUMN total_tokens INTEGER DEFAULT 0",
+        "estimated_cost_usd": "ALTER TABLE calibration_runs ADD COLUMN estimated_cost_usd REAL",
+        "runtime_seconds": "ALTER TABLE calibration_runs ADD COLUMN runtime_seconds REAL",
+        "run_config_json": "ALTER TABLE calibration_runs ADD COLUMN run_config_json TEXT",
+        "created_at": "ALTER TABLE calibration_runs ADD COLUMN created_at TEXT",
+    }.items():
+        if column not in run_columns:
+            connection.execute(statement)
+    connection.execute("CREATE INDEX IF NOT EXISTS idx_calibration_runs_package_prompt ON calibration_runs(package_run_id, model, reasoning_effort, prompt_hash, completed_at)")
+
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS calibration_results (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, calibration_run_id TEXT NOT NULL,
+            company_id TEXT NOT NULL, domain TEXT, label TEXT,
+            confidence REAL, company_activity_summary TEXT, ai_relevance_summary TEXT,
+            primary_reason TEXT, attribution_json TEXT, supporting_evidence_json TEXT,
+            ai_evidence_json TEXT, exclusion_evidence_json TEXT, uncertainty_json TEXT,
+            lexical_signals_json TEXT, raw_response_json TEXT, parsed_response_json TEXT,
+            input_tokens INTEGER, output_tokens INTEGER, reasoning_tokens INTEGER,
+            total_tokens INTEGER, estimated_cost_usd REAL, response_id TEXT,
+            status TEXT NOT NULL, error_message TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(calibration_run_id, company_id)
+        )
+        """
+    )
+    result_columns = table_columns(connection, "calibration_results")
+    for column, statement in {
+        "calibration_run_id": "ALTER TABLE calibration_results ADD COLUMN calibration_run_id TEXT",
+        "company_id": "ALTER TABLE calibration_results ADD COLUMN company_id TEXT",
+        "domain": "ALTER TABLE calibration_results ADD COLUMN domain TEXT",
+        "label": "ALTER TABLE calibration_results ADD COLUMN label TEXT",
+        "confidence": "ALTER TABLE calibration_results ADD COLUMN confidence REAL",
+        "company_activity_summary": "ALTER TABLE calibration_results ADD COLUMN company_activity_summary TEXT",
+        "ai_relevance_summary": "ALTER TABLE calibration_results ADD COLUMN ai_relevance_summary TEXT",
+        "primary_reason": "ALTER TABLE calibration_results ADD COLUMN primary_reason TEXT",
+        "attribution_json": "ALTER TABLE calibration_results ADD COLUMN attribution_json TEXT",
+        "supporting_evidence_json": "ALTER TABLE calibration_results ADD COLUMN supporting_evidence_json TEXT",
+        "ai_evidence_json": "ALTER TABLE calibration_results ADD COLUMN ai_evidence_json TEXT",
+        "exclusion_evidence_json": "ALTER TABLE calibration_results ADD COLUMN exclusion_evidence_json TEXT",
+        "uncertainty_json": "ALTER TABLE calibration_results ADD COLUMN uncertainty_json TEXT",
+        "lexical_signals_json": "ALTER TABLE calibration_results ADD COLUMN lexical_signals_json TEXT",
+        "raw_response_json": "ALTER TABLE calibration_results ADD COLUMN raw_response_json TEXT",
+        "parsed_response_json": "ALTER TABLE calibration_results ADD COLUMN parsed_response_json TEXT",
+        "input_tokens": "ALTER TABLE calibration_results ADD COLUMN input_tokens INTEGER",
+        "output_tokens": "ALTER TABLE calibration_results ADD COLUMN output_tokens INTEGER",
+        "reasoning_tokens": "ALTER TABLE calibration_results ADD COLUMN reasoning_tokens INTEGER",
+        "total_tokens": "ALTER TABLE calibration_results ADD COLUMN total_tokens INTEGER",
+        "estimated_cost_usd": "ALTER TABLE calibration_results ADD COLUMN estimated_cost_usd REAL",
+        "response_id": "ALTER TABLE calibration_results ADD COLUMN response_id TEXT",
+        "status": "ALTER TABLE calibration_results ADD COLUMN status TEXT",
+        "error_message": "ALTER TABLE calibration_results ADD COLUMN error_message TEXT",
+        "created_at": "ALTER TABLE calibration_results ADD COLUMN created_at TEXT",
+    }.items():
+        if column not in result_columns:
+            connection.execute(statement)
+    connection.execute("CREATE INDEX IF NOT EXISTS idx_calibration_results_run_status ON calibration_results(calibration_run_id, status)")
+    connection.execute("CREATE INDEX IF NOT EXISTS idx_calibration_results_company ON calibration_results(company_id, created_at)")
+    run_columns = table_columns(connection, "company_relevance_runs")
+    run_migrations = {
+        "classifier_id": "ALTER TABLE company_relevance_runs ADD COLUMN classifier_id TEXT",
+        "classifier_version": "ALTER TABLE company_relevance_runs ADD COLUMN classifier_version TEXT",
+        "config_id": "ALTER TABLE company_relevance_runs ADD COLUMN config_id TEXT",
+        "config_version": "ALTER TABLE company_relevance_runs ADD COLUMN config_version TEXT",
+        "config_hash": "ALTER TABLE company_relevance_runs ADD COLUMN config_hash TEXT",
+        "status": "ALTER TABLE company_relevance_runs ADD COLUMN status TEXT",
+        "started_at": "ALTER TABLE company_relevance_runs ADD COLUMN started_at TEXT",
+        "completed_at": "ALTER TABLE company_relevance_runs ADD COLUMN completed_at TEXT",
+        "selected_count": "ALTER TABLE company_relevance_runs ADD COLUMN selected_count INTEGER DEFAULT 0",
+        "processed_count": "ALTER TABLE company_relevance_runs ADD COLUMN processed_count INTEGER DEFAULT 0",
+        "reused_count": "ALTER TABLE company_relevance_runs ADD COLUMN reused_count INTEGER DEFAULT 0",
+        "keep_count": "ALTER TABLE company_relevance_runs ADD COLUMN keep_count INTEGER DEFAULT 0",
+        "exclude_count": "ALTER TABLE company_relevance_runs ADD COLUMN exclude_count INTEGER DEFAULT 0",
+        "unknown_count": "ALTER TABLE company_relevance_runs ADD COLUMN unknown_count INTEGER DEFAULT 0",
+        "failed_count": "ALTER TABLE company_relevance_runs ADD COLUMN failed_count INTEGER DEFAULT 0",
+        "runtime_seconds": "ALTER TABLE company_relevance_runs ADD COLUMN runtime_seconds REAL",
+        "companies_per_second": "ALTER TABLE company_relevance_runs ADD COLUMN companies_per_second REAL",
+        "scoring_run_id": "ALTER TABLE company_relevance_runs ADD COLUMN scoring_run_id TEXT",
+        "scoring_context_json": "ALTER TABLE company_relevance_runs ADD COLUMN scoring_context_json TEXT",
+        "failure_json": "ALTER TABLE company_relevance_runs ADD COLUMN failure_json TEXT",
+        "run_scope": "ALTER TABLE company_relevance_runs ADD COLUMN run_scope TEXT DEFAULT 'smoke'",
+        "is_production_candidate": "ALTER TABLE company_relevance_runs ADD COLUMN is_production_candidate INTEGER DEFAULT 0",
+        "notes": "ALTER TABLE company_relevance_runs ADD COLUMN notes TEXT",
+        "run_config_json": "ALTER TABLE company_relevance_runs ADD COLUMN run_config_json TEXT",
+        "created_at": "ALTER TABLE company_relevance_runs ADD COLUMN created_at TEXT",
+    }
+    for column, statement in run_migrations.items():
+        if column not in run_columns:
+            connection.execute(statement)
+
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS company_relevance_classifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            company_id TEXT NOT NULL,
+            classification_run_id INTEGER NOT NULL,
+            label TEXT NOT NULL CHECK (label IN ('KEEP', 'EXCLUDE', 'UNKNOWN')),
+            confidence REAL NOT NULL CHECK (confidence >= 0.0 AND confidence <= 1.0),
+            primary_reason_code TEXT NOT NULL,
+            reason_json TEXT,
+            evidence_json TEXT,
+            classifier_id TEXT,
+            classifier_version TEXT,
+            config_id TEXT,
+            config_version TEXT,
+            config_hash TEXT,
+            scoring_run_id TEXT,
+            scoring_context_json TEXT,
+            decision_json TEXT,
+            reused_from_classification_id INTEGER,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (company_id) REFERENCES firms(bvd_id),
+            FOREIGN KEY (classification_run_id) REFERENCES company_relevance_runs(id),
+            FOREIGN KEY (reused_from_classification_id) REFERENCES company_relevance_classifications(id),
+            UNIQUE(company_id, classification_run_id)
+        );
+        """
+    )
+    classification_columns = table_columns(connection, "company_relevance_classifications")
+    classification_migrations = {
+        "company_id": "ALTER TABLE company_relevance_classifications ADD COLUMN company_id TEXT",
+        "classification_run_id": "ALTER TABLE company_relevance_classifications ADD COLUMN classification_run_id INTEGER",
+        "label": "ALTER TABLE company_relevance_classifications ADD COLUMN label TEXT",
+        "confidence": "ALTER TABLE company_relevance_classifications ADD COLUMN confidence REAL",
+        "primary_reason_code": "ALTER TABLE company_relevance_classifications ADD COLUMN primary_reason_code TEXT",
+        "reason_json": "ALTER TABLE company_relevance_classifications ADD COLUMN reason_json TEXT",
+        "evidence_json": "ALTER TABLE company_relevance_classifications ADD COLUMN evidence_json TEXT",
+        "classifier_id": "ALTER TABLE company_relevance_classifications ADD COLUMN classifier_id TEXT",
+        "classifier_version": "ALTER TABLE company_relevance_classifications ADD COLUMN classifier_version TEXT",
+        "config_id": "ALTER TABLE company_relevance_classifications ADD COLUMN config_id TEXT",
+        "config_version": "ALTER TABLE company_relevance_classifications ADD COLUMN config_version TEXT",
+        "config_hash": "ALTER TABLE company_relevance_classifications ADD COLUMN config_hash TEXT",
+        "scoring_run_id": "ALTER TABLE company_relevance_classifications ADD COLUMN scoring_run_id TEXT",
+        "scoring_context_json": "ALTER TABLE company_relevance_classifications ADD COLUMN scoring_context_json TEXT",
+        "decision_json": "ALTER TABLE company_relevance_classifications ADD COLUMN decision_json TEXT",
+        "reused_from_classification_id": "ALTER TABLE company_relevance_classifications ADD COLUMN reused_from_classification_id INTEGER",
+        "created_at": "ALTER TABLE company_relevance_classifications ADD COLUMN created_at TEXT",
+    }
+    for column, statement in classification_migrations.items():
+        if column not in classification_columns:
+            connection.execute(statement)
+
+    connection.execute(
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_company_relevance_classifications_unique_run_company
+        ON company_relevance_classifications(company_id, classification_run_id);
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_company_relevance_classifications_equivalence
+        ON company_relevance_classifications(
+            company_id,
+            classifier_id,
+            classifier_version,
+            config_id,
+            config_version,
+            config_hash,
+            scoring_run_id,
+            scoring_context_json
+        );
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_company_relevance_classifications_company
+        ON company_relevance_classifications(company_id);
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_company_relevance_classifications_run
+        ON company_relevance_classifications(classification_run_id);
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_company_relevance_classifications_label
+        ON company_relevance_classifications(label);
+        """
+    )
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_company_relevance_classifications_latest
+        ON company_relevance_classifications(company_id, created_at DESC, id DESC);
+        """
+    )
+
+
 def init_database(project_root: Path | None = None) -> Path:
     project_root = project_root or find_project_root()
     config = load_config(project_root)
@@ -834,11 +1174,14 @@ def init_database(project_root: Path | None = None) -> Path:
     with sqlite3.connect(db_path) as connection:
         connection.execute("PRAGMA foreign_keys = ON;")
         connection.executescript(schema_sql)
+        ensure_sample_registry_schema(connection)
         ensure_discovered_pages_schema(connection)
         ensure_acquisition_schema(connection)
         ensure_validation_schema(connection)
         ensure_extraction_schema(connection)
         ensure_scoring_schema(connection)
+        ensure_calibration_schema(connection)
+        ensure_company_relevance_schema(connection)
 
     return db_path
 

@@ -81,6 +81,11 @@ CREATE TABLE IF NOT EXISTS sample_sets (
     sampling_strategy TEXT,
     sampling_seed INTEGER,
     sample_size INTEGER,
+    sample_unit TEXT NOT NULL DEFAULT 'domain' CHECK (sample_unit IN ('domain', 'company')),
+    config_id TEXT,
+    config_version TEXT,
+    config_hash TEXT,
+    domain_count INTEGER,
     created_at TEXT NOT NULL
 );
 
@@ -91,6 +96,31 @@ CREATE TABLE IF NOT EXISTS sample_domains (
     FOREIGN KEY (sample_id) REFERENCES sample_sets(sample_id),
     UNIQUE(sample_id, domain)
 );
+
+-- Company membership is authoritative for company-level samples.  The
+-- sample_domains rows remain a unique domain projection for discovery.
+CREATE TABLE IF NOT EXISTS sample_companies (
+    sample_id TEXT NOT NULL,
+    company_id TEXT NOT NULL,
+    sample_rank INTEGER NOT NULL,
+    nace_code TEXT,
+    nace_description TEXT,
+    enrichment_stratum TEXT,
+    normalized_domain TEXT,
+    sampling_seed INTEGER,
+    selection_reason TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sample_id) REFERENCES sample_sets(sample_id),
+    FOREIGN KEY (company_id) REFERENCES firms(bvd_id),
+    UNIQUE(sample_id, company_id),
+    UNIQUE(sample_id, sample_rank)
+);
+
+CREATE INDEX IF NOT EXISTS idx_sample_companies_company
+ON sample_companies(company_id);
+
+CREATE INDEX IF NOT EXISTS idx_sample_companies_sample_rank
+ON sample_companies(sample_id, sample_rank);
 
 CREATE TABLE IF NOT EXISTS candidate_pages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -478,6 +508,138 @@ CREATE TABLE IF NOT EXISTS page_scores (
     FOREIGN KEY (scraped_page_id) REFERENCES scraped_pages(scraped_page_id),
     FOREIGN KEY (scoring_run_id) REFERENCES scoring_runs(scoring_run_id),
     UNIQUE(scoring_run_id, extracted_page_id, dimension)
+);
+
+-- Versioned, scorer-blind company calibration experiment storage. These tables
+-- are independent of the deprecated deterministic company-relevance tables.
+CREATE TABLE IF NOT EXISTS calibration_runs (
+    calibration_run_id TEXT PRIMARY KEY,
+    package_run_id TEXT NOT NULL,
+    sample_id TEXT,
+    model TEXT NOT NULL,
+    reasoning_effort TEXT NOT NULL,
+    prompt_id TEXT NOT NULL,
+    prompt_version TEXT NOT NULL,
+    prompt_hash TEXT NOT NULL,
+    status TEXT NOT NULL,
+    started_at TEXT,
+    completed_at TEXT,
+    selected_count INTEGER DEFAULT 0,
+    completed_count INTEGER DEFAULT 0,
+    failed_count INTEGER DEFAULT 0,
+    keep_count INTEGER DEFAULT 0,
+    unknown_count INTEGER DEFAULT 0,
+    exclude_count INTEGER DEFAULT 0,
+    input_tokens INTEGER DEFAULT 0,
+    output_tokens INTEGER DEFAULT 0,
+    reasoning_tokens INTEGER DEFAULT 0,
+    total_tokens INTEGER DEFAULT 0,
+    estimated_cost_usd REAL,
+    runtime_seconds REAL,
+    run_config_json TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_calibration_runs_package_prompt
+ON calibration_runs(package_run_id, model, reasoning_effort, prompt_hash, completed_at);
+
+CREATE TABLE IF NOT EXISTS calibration_results (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    calibration_run_id TEXT NOT NULL,
+    company_id TEXT NOT NULL,
+    domain TEXT,
+    label TEXT CHECK (label IN ('KEEP', 'UNKNOWN', 'EXCLUDE')),
+    confidence REAL CHECK (confidence >= 0.0 AND confidence <= 1.0),
+    company_activity_summary TEXT,
+    ai_relevance_summary TEXT,
+    primary_reason TEXT,
+    attribution_json TEXT,
+    supporting_evidence_json TEXT,
+    ai_evidence_json TEXT,
+    exclusion_evidence_json TEXT,
+    uncertainty_json TEXT,
+    lexical_signals_json TEXT,
+    raw_response_json TEXT,
+    parsed_response_json TEXT,
+    input_tokens INTEGER,
+    output_tokens INTEGER,
+    reasoning_tokens INTEGER,
+    total_tokens INTEGER,
+    estimated_cost_usd REAL,
+    response_id TEXT,
+    status TEXT NOT NULL,
+    error_message TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (calibration_run_id) REFERENCES calibration_runs(calibration_run_id),
+    FOREIGN KEY (company_id) REFERENCES firms(bvd_id),
+    UNIQUE(calibration_run_id, company_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_calibration_results_run_status
+ON calibration_results(calibration_run_id, status);
+
+CREATE INDEX IF NOT EXISTS idx_calibration_results_company
+ON calibration_results(company_id, created_at);
+
+-- Deprecated historical storage from the experimental deterministic company
+-- relevance classifier. Kept migration-compatible for reproducibility only.
+-- Current Milestone 5 work is calibration-first and must not use this as an
+-- active production classifier path.
+CREATE TABLE IF NOT EXISTS company_relevance_runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    classifier_id TEXT NOT NULL,
+    classifier_version TEXT NOT NULL,
+    config_id TEXT NOT NULL,
+    config_version TEXT NOT NULL,
+    config_hash TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('pending', 'running', 'completed', 'completed_with_errors', 'completed_with_failures', 'failed')),
+    started_at TEXT,
+    completed_at TEXT,
+    selected_count INTEGER DEFAULT 0,
+    processed_count INTEGER DEFAULT 0,
+    reused_count INTEGER DEFAULT 0,
+    keep_count INTEGER DEFAULT 0,
+    exclude_count INTEGER DEFAULT 0,
+    unknown_count INTEGER DEFAULT 0,
+    failed_count INTEGER DEFAULT 0,
+    runtime_seconds REAL,
+    companies_per_second REAL,
+    scoring_run_id TEXT,
+    scoring_context_json TEXT,
+    failure_json TEXT,
+    run_scope TEXT DEFAULT 'smoke',
+    is_production_candidate INTEGER DEFAULT 0,
+    notes TEXT,
+    run_config_json TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Deprecated historical classifications from the experimental deterministic
+-- company relevance classifier. Do not use these rows for production
+-- exclusion or downstream latest-KEEP selection.
+CREATE TABLE IF NOT EXISTS company_relevance_classifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    company_id TEXT NOT NULL,
+    classification_run_id INTEGER NOT NULL,
+    label TEXT NOT NULL CHECK (label IN ('KEEP', 'EXCLUDE', 'UNKNOWN')),
+    confidence REAL NOT NULL CHECK (confidence >= 0.0 AND confidence <= 1.0),
+    primary_reason_code TEXT NOT NULL,
+    reason_json TEXT,
+    evidence_json TEXT,
+    classifier_id TEXT,
+    classifier_version TEXT,
+    config_id TEXT,
+    config_version TEXT,
+    config_hash TEXT,
+    scoring_run_id TEXT,
+    scoring_context_json TEXT,
+    decision_json TEXT,
+    reused_from_classification_id INTEGER,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (company_id) REFERENCES firms(bvd_id),
+    FOREIGN KEY (classification_run_id) REFERENCES company_relevance_runs(id),
+    FOREIGN KEY (reused_from_classification_id) REFERENCES company_relevance_classifications(id),
+    UNIQUE(company_id, classification_run_id)
 );
 
 CREATE TABLE IF NOT EXISTS external_links (

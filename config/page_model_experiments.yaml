@@ -1,0 +1,48 @@
+experiment_id: scorer_v2_page_model_comparison
+experiment_version: v1
+dataset_directory: data/interim/calibration/page_training_datasets/scorer_v2_page_training_v1
+output_directory: data/interim/calibration/page_model_experiments/scorer_v2_page_model_comparison_v1
+random_seed: 20260909
+development_cv_folds: 4
+
+ridge_alphas: [0.1, 1.0, 10.0, 100.0]
+tree_candidates:
+  - learning_rate: 0.05
+    max_leaf_nodes: 15
+    l2_regularization: 1.0
+  - learning_rate: 0.05
+    max_leaf_nodes: 31
+    l2_regularization: 1.0
+  - learning_rate: 0.10
+    max_leaf_nodes: 15
+    l2_regularization: 3.0
+
+tfidf:
+  word_ngram_range: [1, 2]
+  character_ngram_range: [3, 5]
+  word_max_features: 30000
+  character_max_features: 40000
+  min_document_frequency: 2
+  max_document_frequency: 0.98
+  sublinear_term_frequency: true
+
+auxiliary_models:
+  linear_alpha: 0.0001
+  max_iterations: 2000
+  positive_facet_threshold: 1
+
+ranking:
+  top_k: [3, 5]
+
+runtime_targets:
+  minimum_pages_per_second: 30
+  corpus_page_count: 55000
+  maximum_runtime_seconds: 3600
+  maximum_memory_mb: 8192
+
+# These columns describe annotation sampling/split mechanics rather than a
+# deployable page. They must not enter any candidate representation.
+excluded_engineered_features:
+  - duplicate__cross_split
+  - site__company_selected_page_count
+  - site__domain_selected_page_count

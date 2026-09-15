@@ -18,6 +18,7 @@ from statistics import mean, median
 from typing import Any
 
 from ai_ecosystem.db.init_db import find_project_root, init_database, load_config, resolve_database_path
+from ai_ecosystem.discovery.discovery_utils import sample_exists
 from ai_ecosystem.scoring.config import (
     KnowledgeBaseConfig,
     ScoringProfileConfig,
@@ -151,9 +152,13 @@ def select_scoring_candidates(
     connection: sqlite3.Connection,
     *,
     sample_id: str | None,
+    domain_sample_id: str | None,
     domain: str | None,
     page_limit: int | None,
 ) -> list[ScoringCandidate]:
+    if domain_sample_id and not sample_exists(connection, domain_sample_id):
+        raise ValueError(f"Unknown domain sample_id: {domain_sample_id}")
+
     parameters: list[object] = []
     sample_join = ""
     sample_filter = ""
@@ -161,6 +166,12 @@ def select_scoring_candidates(
         sample_join = "JOIN retention_validation_sample AS rvs ON rvs.scraped_page_id = e.scraped_page_id"
         sample_filter = "AND rvs.sample_id = ?"
         parameters.append(sample_id)
+    domain_sample_join = ""
+    domain_sample_filter = ""
+    if domain_sample_id:
+        domain_sample_join = "JOIN sample_domains AS sd ON sd.domain = s.domain"
+        domain_sample_filter = "AND sd.sample_id = ?"
+        parameters.append(domain_sample_id)
     domain_filter = ""
     if domain:
         domain_filter = "AND s.domain = ?"
@@ -186,11 +197,13 @@ def select_scoring_candidates(
         FROM extracted_pages AS e
         JOIN scraped_pages AS s ON s.scraped_page_id = e.scraped_page_id
         {sample_join}
+        {domain_sample_join}
         LEFT JOIN page_features AS pf ON pf.extracted_page_id = e.extracted_page_id
         WHERE e.extraction_status = 'success'
           AND e.markdown_path IS NOT NULL
           AND e.text_path IS NOT NULL
           {sample_filter}
+          {domain_sample_filter}
           {domain_filter}
         ORDER BY e.scraped_page_id ASC
         {limit_clause}
@@ -664,6 +677,7 @@ def build_report(
 def run_scoring(
     *,
     sample_id: str | None = None,
+    domain_sample_id: str | None = None,
     page_limit: int | None = None,
     domain: str | None = None,
     force_refresh: bool = False,
@@ -688,6 +702,7 @@ def run_scoring(
         candidates = select_scoring_candidates(
             connection,
             sample_id=sample_id,
+            domain_sample_id=domain_sample_id,
             domain=domain,
             page_limit=page_limit,
         )
@@ -695,6 +710,7 @@ def run_scoring(
         config_hash = configuration_hash(
             {
                 "sample_id": sample_id,
+                "domain_sample_id": domain_sample_id,
                 "page_limit": page_limit,
                 "domain": domain,
                 "force_refresh": force_refresh,
@@ -711,12 +727,12 @@ def run_scoring(
             connection,
             scoring_run_id=scoring_run_id,
             profile=profile,
-            sample_id=sample_id,
+            sample_id=domain_sample_id or sample_id,
             extraction_version=",".join(extraction_versions) if extraction_versions else None,
             started_at=started_at,
             pages_selected=len(candidates),
             config_hash=config_hash,
-            notes=json.dumps({"domain": domain, "page_limit": page_limit, "force_refresh": force_refresh}, sort_keys=True),
+            notes=json.dumps({"domain": domain, "domain_sample_id": domain_sample_id, "legacy_sample_id": sample_id, "page_limit": page_limit, "force_refresh": force_refresh}, sort_keys=True),
         )
         connection.commit()
 
@@ -724,7 +740,9 @@ def run_scoring(
         print(f"  Run ID: {scoring_run_id}")
         print(f"  Pages selected: {len(candidates)}")
         if sample_id:
-            print(f"  Sample: {sample_id}")
+            print(f"  Legacy validation sample: {sample_id}")
+        if domain_sample_id:
+            print(f"  Domain sample: {domain_sample_id}")
         if domain:
             print(f"  Domain: {domain}")
 
@@ -793,6 +811,8 @@ def run_scoring(
         notes = json.dumps(
             {
                 "domain": domain,
+                "domain_sample_id": domain_sample_id,
+                "legacy_sample_id": sample_id,
                 "page_limit": page_limit,
                 "force_refresh": force_refresh,
                 "skipped_pages": skipped_pages,
@@ -817,7 +837,9 @@ def run_scoring(
 
     summary: dict[str, object] = {
         "scoring_run_id": scoring_run_id,
-        "sample_id": sample_id,
+        "sample_id": domain_sample_id or sample_id,
+        "domain_sample_id": domain_sample_id,
+        "legacy_sample_id": sample_id,
         "filters": {"domain": domain, "page_limit": page_limit, "force_refresh": force_refresh},
         "extraction_version": extraction_versions[0] if len(extraction_versions) == 1 else extraction_versions,
         "started_at": started_at,
@@ -860,7 +882,8 @@ def print_summary(summary: dict[str, object]) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run content scoring over extracted pages.")
-    parser.add_argument("--sample", dest="sample_id")
+    parser.add_argument("--sample", dest="sample_id", help="Restrict scoring to a legacy page-level validation sample ID.")
+    parser.add_argument("--sample-id", dest="domain_sample_id", help="Restrict scoring to a registered generic domain sample; combines with --sample and --domain.")
     parser.add_argument("--page-limit", type=int)
     parser.add_argument("--domain")
     parser.add_argument("--force-refresh", action="store_true")
@@ -868,6 +891,7 @@ def main() -> None:
     args = parser.parse_args()
     run_scoring(
         sample_id=args.sample_id,
+        domain_sample_id=args.domain_sample_id,
         page_limit=args.page_limit,
         domain=args.domain,
         force_refresh=args.force_refresh,

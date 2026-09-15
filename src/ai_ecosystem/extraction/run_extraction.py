@@ -18,6 +18,7 @@ from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 
+from ai_ecosystem.discovery.discovery_utils import sample_exists
 from ai_ecosystem.discovery.normalization import extract_domain, is_internal_url, normalize_url
 from ai_ecosystem.db.init_db import (
     ensure_extraction_schema,
@@ -246,21 +247,37 @@ def select_extraction_candidates(
     limit: int | None = None,
     domain: str | None = None,
     sample_id: str | None = None,
+    domain_sample_id: str | None = None,
 ) -> list[ExtractionCandidate]:
-    parameters: list[object] = []
+    if domain_sample_id and not sample_exists(connection, domain_sample_id):
+        raise ValueError(f"Unknown domain sample_id: {domain_sample_id}")
+
     domain_filter = ""
     if domain:
         domain_filter = "AND s.domain = ?"
-        parameters.append(domain)
     sample_join = ""
     sample_filter = ""
     if sample_id:
         sample_join = "JOIN retention_validation_sample AS rvs ON rvs.scraped_page_id = s.scraped_page_id"
         sample_filter = "AND rvs.sample_id = ?"
-        parameters.append(sample_id)
+    domain_sample_join = ""
+    domain_sample_filter = ""
+    if domain_sample_id:
+        domain_sample_join = "JOIN sample_domains AS sd ON sd.domain = s.domain"
+        domain_sample_filter = "AND sd.sample_id = ?"
     limit_clause = ""
     if limit is not None:
         limit_clause = "LIMIT ?"
+
+    # Keep bind values in the same order as the dynamically added predicates.
+    parameters: list[object] = []
+    if sample_id:
+        parameters.append(sample_id)
+    if domain_sample_id:
+        parameters.append(domain_sample_id)
+    if domain:
+        parameters.append(domain)
+    if limit is not None:
         parameters.append(limit)
 
     rows = connection.execute(
@@ -268,9 +285,11 @@ def select_extraction_candidates(
         SELECT DISTINCT s.scraped_page_id, s.domain, s.url, s.html_path, s.title
         FROM scraped_pages AS s
         {sample_join}
+        {domain_sample_join}
         WHERE s.scrape_status = 'success'
           AND s.html_path IS NOT NULL
           {sample_filter}
+          {domain_sample_filter}
           {domain_filter}
         ORDER BY s.domain, s.url, s.scraped_page_id
         {limit_clause}
@@ -447,13 +466,18 @@ def extract_links_from_html(html: str, candidate: ExtractionCandidate) -> list[d
         href_lower = href_text.lower()
         if href_lower.startswith(("#", "mailto:", "tel:", "javascript:")):
             continue
-        absolute_url = urljoin(candidate.url, href_text)
-        normalized_target_url = normalize_url(absolute_url)
-        target_domain = extract_domain(absolute_url)
-        normalized_target_domain = extract_domain(normalized_target_url) if normalized_target_url else None
+        try:
+            absolute_url = urljoin(candidate.url, href_text)
+            normalized_target_url = normalize_url(absolute_url)
+            target_domain = extract_domain(absolute_url)
+            normalized_target_domain = extract_domain(normalized_target_url) if normalized_target_url else None
+            is_internal = is_internal_url(absolute_url, candidate.domain or "") if candidate.domain else False
+        except ValueError:
+            # HTML often contains malformed telephone-like values in href attributes.
+            # They are invalid link records, not extraction failures.
+            continue
         if not normalized_target_url and not target_domain:
             continue
-        is_internal = is_internal_url(absolute_url, candidate.domain or "") if candidate.domain else False
         anchor_text = normalize_anchor_text(anchor.get_text(" ", strip=True))
         links.append(
             {
@@ -779,6 +803,7 @@ def run_extraction(
     force_refresh: bool = False,
     domain: str | None = None,
     sample_id: str | None = None,
+    domain_sample_id: str | None = None,
     progress_every: int = 25,
     project_root: Path | None = None,
 ) -> dict[str, object]:
@@ -793,13 +818,20 @@ def run_extraction(
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON;")
         ensure_extraction_schema(connection)
-        candidates = select_extraction_candidates(connection, page_limit, domain, sample_id)
+        candidates = select_extraction_candidates(
+            connection,
+            page_limit,
+            domain,
+            sample_id,
+            domain_sample_id,
+        )
         extraction_run_id = generate_extraction_run_id()
         started_at = utc_now_iso()
         config_hash = configuration_hash(
             {
                 "extraction_version": extraction_config.extraction_version,
                 "sample_id": sample_id,
+                "domain_sample_id": domain_sample_id,
                 "page_limit": page_limit,
                 "domain": domain,
                 "force_refresh": force_refresh,
@@ -820,7 +852,9 @@ def run_extraction(
         print(f"  Run ID: {extraction_run_id}")
         print(f"  Pages selected: {len(candidates)}")
         if sample_id:
-            print(f"  Sample: {sample_id}")
+            print(f"  Validation sample: {sample_id}")
+        if domain_sample_id:
+            print(f"  Domain sample: {domain_sample_id}")
 
         processed = 0
         skipped = 0
@@ -883,6 +917,7 @@ def run_extraction(
     summary = {
         "extraction_run_id": extraction_run_id,
         "sample_id": sample_id,
+        "domain_sample_id": domain_sample_id,
         "pages_selected": len(candidates),
         "processed": processed,
         "skipped": skipped,
@@ -901,7 +936,9 @@ def print_summary(summary: dict[str, object]) -> None:
     print(f"  Run ID: {summary['extraction_run_id']}")
     print(f"  Extraction version: {summary['extraction_version']}")
     if summary.get("sample_id"):
-        print(f"  Sample: {summary['sample_id']}")
+        print(f"  Validation sample: {summary['sample_id']}")
+    if summary.get("domain_sample_id"):
+        print(f"  Domain sample: {summary['domain_sample_id']}")
     print(f"  Pages selected: {summary['pages_selected']}")
     print(f"  Processed: {summary['processed']}")
     print(f"  Skipped: {summary['skipped']}")
@@ -917,7 +954,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--page-limit", type=int, default=None, help="Maximum number of acquired pages to select.")
     parser.add_argument("--force-refresh", action="store_true", help="Reprocess already successful extractions.")
     parser.add_argument("--domain", help="Restrict extraction to one source domain.")
-    parser.add_argument("--sample", dest="sample_id", help="Restrict extraction to a validation sample ID.")
+    parser.add_argument(
+        "--sample",
+        dest="sample_id",
+        help="Restrict extraction to a legacy page-level validation sample ID.",
+    )
+    parser.add_argument(
+        "--sample-id",
+        dest="domain_sample_id",
+        help="Restrict extraction to a registered generic domain sample; combines with --sample and --domain.",
+    )
     parser.add_argument(
         "--progress-every",
         type=int,
@@ -938,6 +984,7 @@ def main() -> None:
         force_refresh=args.force_refresh,
         domain=args.domain,
         sample_id=args.sample_id,
+        domain_sample_id=args.domain_sample_id,
         progress_every=args.progress_every,
     )
 

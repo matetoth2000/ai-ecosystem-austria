@@ -435,3 +435,35 @@ The primary methodological challenge has shifted from content extraction to evid
 - Do not spend additional effort optimizing extraction before scoring.
 - Future improvements to extraction should only be considered if content-scoring experiments demonstrate systematic evidence loss.
 - Development effort should now focus on designing and validating multi-dimensional content scoring.
+
+---
+
+## 2026-09-12: Prioritize Company AI-Promise Modeling
+
+### Context
+
+Milestone 5 company calibration and page-model experiments established reusable
+supervision and practical broad-utility rankers. Locked token-budget diagnostics
+showed that high general company utility does not establish AI-specific evidence
+selection: useful pages were common and random selection fit more short pages.
+
+### Decision
+
+Prioritize identifying companies with sufficiently promising, company-attributed
+AI or AI-adjacent evidence to justify final LLM analysis. Start with a company
+dataset and evaluation protocol using the existing 649 calibrated companies;
+do not commission a replacement generic labeling run before initial experiments.
+Preserve UNKNOWN as uncertainty, never as a negative label. Independently validate
+false exclusions and low-scoring possible positives before deployment.
+
+Page models support later evidence selection. Pause further broad-utility
+optimization; retain scorer v1 as an uncalibrated historical baseline and page
+rankers/selectors as provisional candidates. No artifacts are deleted and no
+deprecated classifier rules are reactivated. The four v1 dimensions are not a
+required architecture for future models.
+
+The final LLM supplies AI-active/non-AI mapping, ecosystem roles, techniques, and
+evidence. Population scaling and the optional network remain later work.
+This decision supersedes earlier forward-looking commitments to page-first,
+four-dimensional scoring without changing their historical record or runtime.
+See [methodology and artifact statuses](../docs/calibration_methodology.md#2026-09-12-company-level-pivot).

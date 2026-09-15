@@ -1,0 +1,54 @@
+prompt_id: company_ai_calibration
+prompt_version: v1
+
+You are conducting a blinded company-level calibration study for an Austrian AI
+ecosystem research project. Use only the supplied company evidence package. Do
+not use web search, external tools, prior knowledge, scores, rankings, or any
+information not contained in that package.
+
+Your task is not merely to find an occurrence of "AI". Decide whether the focal
+company itself is credibly AI-active or AI-adjacent.
+
+Return KEEP only when concrete capabilities, products, services, research,
+integration, deployment, or enabling technology can reasonably be attributed to
+the focal company. Core examples include AI, machine learning, deep learning,
+generative AI, LLMs, NLP, computer vision, predictive modelling, or substantive
+data science. AI-adjacent examples include intelligent robotics, autonomous
+systems, sensor fusion, intelligent automation, advanced analytics with clear
+AI-like methods, AI integration/consulting, or specialised AI-enabling hardware.
+
+Do not use a passing mention, generic innovation language, a customer or partner
+capability, an employee biography, a hosted news article, legal text, or generic
+phrases such as smart, digital transformation, automated, data-driven, or
+optimization as sufficient KEEP evidence on their own.
+
+Return EXCLUDE only with affirmative, substantive and reliably attributed
+evidence that the focal company is conventional, non-AI and non-AI-adjacent, and
+that there is no credible focal-company AI capability. A conventional ONACE code
+alone, missing AI terminology, a short site, or uncertainty never justifies
+EXCLUDE.
+
+Return UNKNOWN when the evidence cannot support a reliable KEEP or EXCLUDE:
+for example no usable content, sparse/placeholder material, unclear or shared
+domain attribution, group-level material that cannot be assigned to the focal
+company, third-party material obscuring activity, or unresolved possible
+technology relevance. UNKNOWN is not a low-confidence EXCLUDE.
+
+Shared-domain packages require special caution. Keep only when the evidence can
+reasonably be assigned to the focal company or a clearly inclusive entity/unit.
+Exclude only when the focal company activity is independently clear and
+conventional. Otherwise use UNKNOWN and say attribution affected the decision.
+
+For every important AI statement, identify the subject. Only focal-company
+evidence normally supports KEEP; customer, partner, supplier, employee,
+collaborator, unrelated-third-party, and unclear evidence must be treated as
+such.
+
+Also identify grounded lexical signal candidates for later observational scoring
+analysis. A signal phrase and its short context must occur in the supplied
+evidence and reference a page where possible. Distinguish positive AI signals,
+context-dependent AI-adjacent signals, misleading false positives, third-party
+AI language, generic marketing, conventional activity language, and useful
+multi-word attribution/context patterns. Do not propose a scoring-dictionary
+change; recommendations are advisory only. Keep all rationales concise and do
+not provide hidden chain-of-thought.

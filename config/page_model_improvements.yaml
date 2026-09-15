@@ -1,0 +1,54 @@
+experiment_id: scorer_v2_page_model_improvement
+experiment_version: v1
+
+dataset_directory: data/interim/calibration/page_training_datasets/scorer_v2_page_training_v1
+annotation_sample_directory: data/interim/calibration/page_annotation_samples/scorer_v2_page_annotation_v1
+baseline_directory: data/interim/calibration/page_model_experiments/scorer_v2_page_model_comparison_v1
+baseline_config: config/page_model_experiments.yaml
+output_directory: data/interim/calibration/page_model_improvements/scorer_v2_page_model_improvement_v1
+
+random_seed: 20260909
+development_cv_folds: 4
+ridge_alphas: [0.1, 1.0, 10.0, 100.0]
+
+tree_candidates:
+  - learning_rate: 0.05
+    max_leaf_nodes: 15
+    min_samples_leaf: 20
+    l2_regularization: 1.0
+  - learning_rate: 0.05
+    max_leaf_nodes: 31
+    min_samples_leaf: 20
+    l2_regularization: 1.0
+  - learning_rate: 0.10
+    max_leaf_nodes: 15
+    min_samples_leaf: 10
+    l2_regularization: 3.0
+
+attribution_models:
+  sgd_alphas: [0.00001, 0.0001, 0.001]
+  class_weight_powers: [0.5, 0.75, 1.0]
+  max_iterations: 3000
+  hgb_candidates:
+    - learning_rate: 0.05
+      max_leaf_nodes: 15
+      min_samples_leaf: 20
+      l2_regularization: 1.0
+    - learning_rate: 0.05
+      max_leaf_nodes: 31
+      min_samples_leaf: 20
+      l2_regularization: 1.0
+    - learning_rate: 0.10
+      max_leaf_nodes: 15
+      min_samples_leaf: 10
+      l2_regularization: 3.0
+
+attribution_adjustment:
+  penalties: [0.0, 0.1, 0.25, 0.5, 0.75, 1.0]
+  probable_credit: 0.65
+
+runtime_targets:
+  minimum_pages_per_second: 30
+  corpus_page_count: 55000
+  maximum_runtime_seconds: 3600
+  maximum_memory_mb: 8192

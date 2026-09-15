@@ -1,0 +1,38 @@
+evaluation_id: scorer_v2_locked_retrieval_evaluation
+evaluation_version: v1
+annotation_sample_directory: data/interim/calibration/page_annotation_samples/scorer_v2_locked_retrieval_v1
+annotation_run_id: scorer_v2_locked_retrieval_v1_bulk_20260910
+annotation_run_directory: data/interim/calibration/page_annotation_runs/scorer_v2_locked_retrieval_v1_bulk_20260910
+annotation_qa_version: qa_qa_v2
+model_directory: data/interim/calibration/page_model_improvements/scorer_v2_page_model_improvement_v1/models
+model_manifest: data/interim/calibration/page_model_improvements/scorer_v2_page_model_improvement_v1/manifest.json
+training_feature_dictionary: data/interim/calibration/page_training_datasets/scorer_v2_page_training_v1/feature_dictionary.json
+baseline_model_config: config/page_model_experiments.yaml
+output_directory: data/interim/calibration/locked_retrieval_evaluation/scorer_v2_locked_retrieval_evaluation_v1
+
+candidate_ids:
+  - tfidf_relational_ridge_attribution_adjusted
+  - tfidf_relational_ridge
+  - hybrid_relational_ridge
+  - engineered_relational_hgb
+dedicated_attribution_model: dedicated_engineered_relational_hgb
+
+relevance_utility_threshold: 2
+ranking_k: [5, 10, 20]
+token_budgets: [8000, 16000, 32000, 50000]
+random_seed: 20260910
+
+# Frozen before locked outcomes are loaded. These are evaluation challengers,
+# not parameters tuned against the locked set.
+set_selection:
+  strategies: [top_ranked, diversity_aware]
+  utility_weight: 0.65
+  focal_attribution_weight: 0.15
+  facet_novelty_weight: 0.10
+  path_novelty_weight: 0.05
+  redundancy_penalty: 0.30
+  predicted_noise_penalty: 0.10
+  lexical_token_cap: 512
+  material_utility_gain: 0.01
+  material_facet_gain: 0.03
+  maximum_utility_tradeoff: 0.01

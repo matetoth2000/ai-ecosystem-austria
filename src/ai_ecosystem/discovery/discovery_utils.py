@@ -41,3 +41,22 @@ def get_sample_domains(connection: sqlite3.Connection, sample_id: str) -> list[s
         (sample_id,),
     ).fetchall()
     return [row[0] for row in rows]
+
+
+def get_sample_company_ids(connection: sqlite3.Connection, sample_id: str) -> list[str]:
+    """Return explicit company membership for company-level samples, if present."""
+    table_exists = connection.execute(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'sample_companies'"
+    ).fetchone()
+    if not table_exists:
+        return []
+    rows = connection.execute(
+        """
+        SELECT company_id
+        FROM sample_companies
+        WHERE sample_id = ?
+        ORDER BY sample_rank, company_id
+        """,
+        (sample_id,),
+    ).fetchall()
+    return [str(row[0]) for row in rows]

@@ -334,11 +334,106 @@ class RunScoringTest(unittest.TestCase):
                 text="partner",
             )
             connection.row_factory = sqlite3.Row
-            candidates = select_scoring_candidates(connection, sample_id=None, domain="a.test", page_limit=1)
+            candidates = select_scoring_candidates(
+                connection,
+                sample_id=None,
+                domain_sample_id=None,
+                domain="a.test",
+                page_limit=1,
+            )
 
         self.assertEqual(len(candidates), 1)
         self.assertEqual(candidates[0].domain, "a.test")
         self.assertEqual(candidates[0].scraped_page_id, 2)
+
+    def test_scores_registered_generic_domain_sample_without_changing_legacy_sample_behavior(self) -> None:
+        with sqlite3.connect(self.db_path) as connection:
+            connection.execute(
+                "INSERT INTO sample_sets (sample_id, sample_name, created_at) VALUES ('ai_enriched_v1', 'AI enriched', 'now')"
+            )
+            connection.execute(
+                "INSERT INTO sample_sets (sample_id, sample_name, created_at) VALUES ('other_sample', 'Other', 'now')"
+            )
+            connection.executemany(
+                "INSERT INTO domains (domain) VALUES (?)",
+                [("included.test",), ("also-included.test",), ("excluded.test",)],
+            )
+            connection.executemany(
+                "INSERT INTO sample_domains (sample_id, domain, sample_rank) VALUES (?, ?, ?)",
+                [
+                    ("ai_enriched_v1", "included.test", 1),
+                    ("ai_enriched_v1", "also-included.test", 2),
+                    ("other_sample", "excluded.test", 1),
+                ],
+            )
+            included_id, _ = insert_extracted_page(
+                connection,
+                self.project_root,
+                domain="included.test",
+                url="https://included.test/about",
+                markdown="# Products",
+                text="products software prototype partner",
+                sample_id="smoke_v1",
+            )
+            also_included_id, _ = insert_extracted_page(
+                connection,
+                self.project_root,
+                domain="also-included.test",
+                url="https://also-included.test/about",
+                markdown="# Software",
+                text="products software prototype partner",
+            )
+            excluded_id, _ = insert_extracted_page(
+                connection,
+                self.project_root,
+                domain="excluded.test",
+                url="https://excluded.test/about",
+                markdown="# Partner",
+                text="products software prototype partner",
+            )
+            connection.row_factory = sqlite3.Row
+            selected = select_scoring_candidates(
+                connection,
+                sample_id=None,
+                domain_sample_id="ai_enriched_v1",
+                domain=None,
+                page_limit=None,
+            )
+            intersected = select_scoring_candidates(
+                connection,
+                sample_id="smoke_v1",
+                domain_sample_id="ai_enriched_v1",
+                domain=None,
+                page_limit=None,
+            )
+            legacy_selected = select_scoring_candidates(
+                connection,
+                sample_id="smoke_v1",
+                domain_sample_id=None,
+                domain=None,
+                page_limit=None,
+            )
+            with self.assertRaisesRegex(ValueError, "Unknown domain sample_id"):
+                select_scoring_candidates(
+                    connection,
+                    sample_id=None,
+                    domain_sample_id="missing_sample",
+                    domain=None,
+                    page_limit=None,
+                )
+            connection.commit()
+
+        self.assertEqual([candidate.scraped_page_id for candidate in selected], [included_id, also_included_id])
+        self.assertEqual([candidate.scraped_page_id for candidate in intersected], [included_id])
+        self.assertEqual([candidate.scraped_page_id for candidate in legacy_selected], [included_id])
+        self.assertNotIn(excluded_id, [candidate.scraped_page_id for candidate in selected])
+
+        report = run_scoring(domain_sample_id="ai_enriched_v1", project_root=self.project_root)
+
+        self.assertEqual(report["sample_id"], "ai_enriched_v1")
+        self.assertEqual(report["domain_sample_id"], "ai_enriched_v1")
+        self.assertEqual(report["pages_selected"], 2)
+        self.assertEqual(report["pages_scored"], 2)
 
     def test_rerun_skips_existing_scores_and_force_refresh_replaces(self) -> None:
         with sqlite3.connect(self.db_path) as connection:

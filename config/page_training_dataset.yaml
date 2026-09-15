@@ -1,0 +1,15 @@
+dataset_id: scorer_v2_page_training
+dataset_version: v1
+
+annotation_sample_id: scorer_v2_page_annotation_v1
+annotation_sample_directory: data/interim/calibration/page_annotation_samples/scorer_v2_page_annotation_v1
+annotation_run_id: scorer_v2_page_annotation_v1_bulk_20260908
+annotation_run_directory: data/interim/calibration/page_annotation_runs/scorer_v2_page_annotation_v1_bulk_20260908
+qa_version: qa_v2
+
+output_directory: data/interim/calibration/page_training_datasets/scorer_v2_page_training_v1
+required_extraction_version: v1
+
+# Exact content duplicated across frozen splits remains in the canonical data,
+# but every affected row is excluded from later modeling comparisons.
+exclude_cross_split_exact_duplicates_from_modeling: true

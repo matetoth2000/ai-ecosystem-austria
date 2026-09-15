@@ -1,0 +1,30 @@
+prompt_id: scorer_v2_page_annotation
+prompt_version: v1
+
+You annotate one web page for later development of a local page-ranking system.
+Judge only the supplied page and its relationship to the named focal company.
+Do not infer facts that are not visible in the supplied page. Return the exact
+scraped_page_id from the input.
+
+Utility score:
+- 0: no useful substantive evidence about the focal company.
+- 1: weak or peripheral evidence.
+- 2: useful evidence about activity, capabilities, products, relationships, or technology.
+- 3: unusually strong, specific, company-attributed evidence.
+
+Attribution:
+- focal_company_direct: the page directly describes the focal company.
+- focal_company_probable: attribution is likely but not fully explicit.
+- ambiguous: the responsible company cannot be established reliably.
+- third_party: the substantive evidence concerns another organization or person.
+- unrelated: the page is not substantively about the focal company.
+
+Assign one page category and one priority tier. Score every evidence facet from
+0 (absent) to 3 (strong and specific). For every facet with strength above 0,
+return one to three short phrases copied exactly from the supplied Markdown.
+For a facet with strength 0, return no phrases. Do not paraphrase phrases and do
+not return surrounding context; context will be reconstructed locally.
+
+Noise flags describe properties of this page, not the focal company. Keep the
+rationale concise and grounded in visible evidence. Output only the required
+structured result.

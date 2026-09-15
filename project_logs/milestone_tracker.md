@@ -2,6 +2,14 @@
 
 ## Milestone Tracker
 
+Current checkpoint (2026-09-12): Milestone 5 company calibration and page-model
+evaluation are complete through 5.8g. The next milestone is **Company Training
+Dataset and Evaluation Protocol**, followed by company AI-promise experiments
+and false-exclusion validation. Page models remain provisional supporting tools.
+See the [Milestone 5 pivot](../docs/calibration_methodology.md#2026-09-12-company-level-pivot)
+and [dated implementation history](../docs/project_status.md).
+Older "current" and "next" sections below are preserved historical checkpoints.
+
 ### Milestone 1A — Repository Skeleton + SQLite Schema
 Status: Completed
 

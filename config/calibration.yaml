@@ -1,0 +1,20 @@
+package_builder_id: company_calibration_evidence
+package_builder_version: v1
+default_sample_id: pilot_v0_2
+default_scoring_run_id: scoring_20260715T131248Z_f305ef18
+default_max_package_tokens: 50000
+tokenizer_model: gpt-5
+blind_input_format: markdown_and_json
+analysis_metadata_format: json
+
+openai:
+  default_model: gpt-5.6-luna
+  default_reasoning_effort: low
+  pricing_version: "2026-08-25"
+  pricing:
+    gpt-5.6-luna:
+      input_per_million: 0.20
+      cached_input_per_million: 0.02
+      output_per_million: 1.20
+  retry_count: 2
+  request_timeout_seconds: 120

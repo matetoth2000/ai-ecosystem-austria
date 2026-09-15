@@ -1,0 +1,187 @@
+sampling_id: onace_ai_enrichment
+sampling_version: v1
+taxonomy_id: oenace_2008_ai_enrichment
+taxonomy_version: v1
+taxonomy_source:
+  authority: Statistik Austria
+  title: "ÖNACE 2008 Grundstruktur und Erläuterungen"
+  url: https://www.statistik.at/kdb/downloads/pdf/prod/OENACE2008_DE_CTE.pdf
+  source_field: "ONACE 2008 Haupttätigkeit 4-stellig - Code"
+
+default_sample_id: ai_enriched_v1
+default_sample_name: "AI-Enriched Calibration v1"
+default_target_size: 500
+default_seed: 20260825
+default_exclude_samples:
+  - pilot_v0_2
+default_output_csv: data/interim/ai_enriched_calibration_v1.csv
+
+eligibility:
+  require_normalized_domain: true
+  exclude_marked_domains: true
+
+strata:
+  HIGH_POTENTIAL:
+    target_size: 300
+    per_code_cap: 25
+    rationale: "Technology-intensive activities plausibly enriched for AI, data, software, research, electronics, or advanced machinery."
+    codes:
+      - code: J582
+        description: "Verlegen von Software"
+        rationale: "Software publishers are plausibly enriched for AI-enabled products."
+      - code: J611
+        description: "Leitungsgebundene Telekommunikation"
+        rationale: "Telecommunications infrastructure can enable AI and data-intensive services."
+      - code: J619
+        description: "Sonstige Telekommunikation"
+        rationale: "Specialized telecommunications can enable AI and data-intensive services."
+      - code: J620
+        description: "Erbringung von Dienstleistungen der Informationstechnologie"
+        rationale: "IT development and services are a primary AI-enrichment stratum."
+      - code: J631
+        description: "Datenverarbeitung, Hosting und damit verbundene Tätigkeiten; Webportale"
+        rationale: "Data processing and hosting are plausible AI infrastructure activities."
+      - code: M720
+        description: "Forschung und Entwicklung"
+        rationale: "Research and development is plausibly enriched for applied AI activity."
+      - code: M721
+        description: "Forschung und Entwicklung im Bereich Natur-, Ingenieur-, Agrarwissenschaften und Medizin"
+        rationale: "Scientific and technical R&D is plausibly enriched for applied AI activity."
+      - code: C261
+        description: "Herstellung von elektronischen Bauelementen und Leiterplatten"
+        rationale: "Electronic components can support AI-enabling hardware."
+      - code: C262
+        description: "Herstellung von Datenverarbeitungsgeräten und peripheren Geräten"
+        rationale: "Computing hardware can support AI-enabling products."
+      - code: C263
+        description: "Herstellung von Geräten und Einrichtungen der Telekommunikationstechnik"
+        rationale: "Telecommunications equipment can support AI-enabling infrastructure."
+      - code: C264
+        description: "Herstellung von Geräten der Unterhaltungselektronik"
+        rationale: "Electronics manufacturing provides a technically diverse hardware stratum."
+      - code: C265
+        description: "Herstellung von Mess-, Kontroll-, Navigations- u. ä. Instrumenten und Vorrichtungen; Herstellung von Uhren"
+        rationale: "Sensing and control equipment is relevant to AI-enabled systems."
+      - code: C266
+        description: "Herstellung von Bestrahlungs- und Elektrotherapiegeräten und elektromedizinischen Geräten"
+        rationale: "Medical electronics provides an AI-relevant technical hardware stratum."
+      - code: C267
+        description: "Herstellung von optischen und fotografischen Instrumenten und Geräten"
+        rationale: "Optics and imaging hardware is relevant to computer-vision applications."
+      - code: C271
+        description: "Herstellung von Elektromotoren, Generatoren und Transformatoren"
+        rationale: "Industrial electrical systems provide a technical hardware stratum."
+      - code: C273
+        description: "Herstellung von Kabeln und elektrischem Installationsmaterial"
+        rationale: "Electrical systems manufacturing provides technical hardware diversity."
+      - code: C274
+        description: "Herstellung von elektrischen Lampen und Leuchten"
+        rationale: "Electrical equipment manufacturing provides technical hardware diversity."
+      - code: C275
+        description: "Herstellung von Haushaltsgeräten"
+        rationale: "Connected and automated equipment is a plausible AI-adjacent product area."
+      - code: C279
+        description: "Herstellung von sonstigen elektrischen Ausrüstungen und Geräten"
+        rationale: "Other electrical equipment provides technical hardware diversity."
+      - code: C281
+        description: "Herstellung von nicht wirtschaftszweigspezifischen Maschinen"
+        rationale: "General machinery manufacturing can include automation and controls."
+      - code: C282
+        description: "Herstellung von sonstigen nicht wirtschaftszweigspezifischen Maschinen"
+        rationale: "General machinery manufacturing can include automation and controls."
+      - code: C284
+        description: "Herstellung von Werkzeugmaschinen"
+        rationale: "Machine tools provide an advanced industrial technology stratum."
+      - code: C289
+        description: "Herstellung von Maschinen für sonstige bestimmte Wirtschaftszweige"
+        rationale: "Special-purpose machinery can include automation and controls."
+
+  AI_ADJACENT:
+    target_size: 125
+    per_code_cap: 20
+    rationale: "Technical sectors where AI relevance is plausible but not expected for most firms."
+    codes:
+      - code: M711
+        description: "Architektur- und Ingenieurbüros"
+        rationale: "Engineering services can develop or integrate AI-adjacent systems."
+      - code: M712
+        description: "Technische Untersuchung und Analyse"
+        rationale: "Technical testing can use data-intensive and AI-adjacent methods."
+      - code: C283
+        description: "Herstellung von land- und forstwirtschaftlichen Maschinen"
+        rationale: "Agricultural machinery can include automation and sensing."
+      - code: C291
+        description: "Herstellung von Kraftwagen und Kraftwagenmotoren"
+        rationale: "Automotive development can include autonomous and sensor systems."
+      - code: C292
+        description: "Herstellung von Karosserien, Aufbauten und Anhängern"
+        rationale: "Automotive engineering provides adjacent industrial technology cases."
+      - code: C293
+        description: "Herstellung von Teilen und Zubehör für Kraftwagen"
+        rationale: "Automotive suppliers can develop sensor and control components."
+      - code: C325
+        description: "Herstellung von medizinischen und zahnmedizinischen Apparaten und Materialien"
+        rationale: "Medical devices are a plausible AI-adjacent technical sector."
+      - code: C332
+        description: "Installation von Maschinen und Ausrüstungen a. n. g."
+        rationale: "Industrial installation can include automation and system integration."
+      - code: H522
+        description: "Erbringung von sonstigen Dienstleistungen für den Verkehr"
+        rationale: "Transport-support activities provide logistics-technology cases."
+
+  CONVENTIONAL_CONTROL:
+    target_size: 75
+    per_code_cap: 8
+    rationale: "Clearly conventional sectors used to assess false-positive propensity."
+    codes:
+      - code: I551
+        description: "Hotels, Gasthöfe und Pensionen"
+        rationale: "Conventional accommodation control sector."
+      - code: I561
+        description: "Restaurants, Gaststätten, Imbissstuben, Cafés, Eissalons u. Ä."
+        rationale: "Conventional food-service control sector."
+      - code: G471
+        description: "Einzelhandel mit Waren verschiedener Art"
+        rationale: "Conventional retail control sector."
+      - code: G472
+        description: "Einzelhandel mit Nahrungs- und Genussmitteln, Getränken und Tabakwaren"
+        rationale: "Conventional food-retail control sector."
+      - code: G474
+        description: "Einzelhandel mit Geräten der Informations- und Kommunikationstechnik"
+        rationale: "Retail control with incidental technology vocabulary."
+      - code: G475
+        description: "Einzelhandel mit sonstigen Haushaltsgeräten, Textilien, Heimwerker- und Einrichtungsbedarf"
+        rationale: "Conventional retail control sector."
+      - code: G477
+        description: "Einzelhandel mit sonstigen Gütern"
+        rationale: "Conventional retail control sector."
+      - code: F411
+        description: "Erschließung von Grundstücken; Bauträger"
+        rationale: "Conventional construction and property-development control sector."
+      - code: F412
+        description: "Bau von Gebäuden"
+        rationale: "Conventional construction control sector."
+      - code: F432
+        description: "Bauinstallation"
+        rationale: "Conventional trade-service control sector."
+      - code: F433
+        description: "Sonstiger Ausbau"
+        rationale: "Conventional trade-service control sector."
+      - code: M692
+        description: "Wirtschaftsprüfung und Steuerberatung; Buchführung"
+        rationale: "Conventional professional-service control sector."
+      - code: L681
+        description: "Kauf und Verkauf von eigenen Grundstücken, Gebäuden und Wohnungen"
+        rationale: "Conventional property control sector."
+      - code: L682
+        description: "Vermietung, Verpachtung von eigenen oder geleasten Grundstücken, Gebäuden und Wohnungen"
+        rationale: "Conventional property control sector."
+      - code: L683
+        description: "Vermittlung und Verwaltung von Grundstücken, Gebäuden und Wohnungen"
+        rationale: "Conventional property-service control sector."
+      - code: H494
+        description: "Güterbeförderung im Straßenverkehr, Umzugstransporte"
+        rationale: "Conventional transport control sector."
+      - code: S960
+        description: "Erbringung von sonstigen überwiegend persönlichen Dienstleistungen"
+        rationale: "Conventional personal-service control sector."

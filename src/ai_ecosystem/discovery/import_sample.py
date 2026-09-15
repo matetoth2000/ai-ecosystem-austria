@@ -7,37 +7,19 @@ import csv
 import sqlite3
 from pathlib import Path
 
-from ai_ecosystem.db.init_db import find_project_root, load_config, resolve_database_path, resolve_project_path
+from ai_ecosystem.db.init_db import (
+    ensure_sample_registry_schema as ensure_registered_sample_schema,
+    find_project_root,
+    load_config,
+    resolve_database_path,
+    resolve_project_path,
+)
 from ai_ecosystem.discovery.discovery_utils import utc_now_iso
 
 
 def ensure_sample_registry_schema(connection: sqlite3.Connection) -> None:
-    """Create sample registry tables for existing development databases."""
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS sample_sets (
-            sample_id TEXT PRIMARY KEY,
-            sample_name TEXT NOT NULL,
-            sample_description TEXT,
-            source_csv TEXT,
-            sampling_strategy TEXT,
-            sampling_seed INTEGER,
-            sample_size INTEGER,
-            created_at TEXT NOT NULL
-        )
-        """
-    )
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS sample_domains (
-            sample_id TEXT NOT NULL,
-            domain TEXT NOT NULL,
-            sample_rank INTEGER,
-            FOREIGN KEY (sample_id) REFERENCES sample_sets(sample_id),
-            UNIQUE(sample_id, domain)
-        )
-        """
-    )
+    """Create generic domain- and company-sample storage for existing databases."""
+    ensure_registered_sample_schema(connection)
 
 
 def read_sample_csv(path: Path) -> list[tuple[str, int | None]]:

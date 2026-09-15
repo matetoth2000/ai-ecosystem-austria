@@ -12,7 +12,14 @@ from pathlib import Path
 from unittest.mock import patch
 
 from ai_ecosystem.db.init_db import init_database
-from ai_ecosystem.extraction.run_extraction import ExtractedDocument, run_extraction
+from ai_ecosystem.extraction.run_extraction import (
+    ExtractedDocument,
+    ExtractionCandidate,
+    build_parser,
+    extract_links_from_html,
+    run_extraction,
+    select_extraction_candidates,
+)
 
 
 def write_temp_config(project_root: Path) -> None:
@@ -116,6 +123,149 @@ def insert_validation_sample_row(
 
 
 class RunExtractionTest(unittest.TestCase):
+    def test_malformed_link_url_is_skipped_while_valid_links_are_retained(self) -> None:
+        candidate = ExtractionCandidate(
+            scraped_page_id=1,
+            domain="example.at",
+            url="https://example.at/source",
+            html_path="unused.html.gz",
+        )
+        links = extract_links_from_html(
+            """
+            <a href="https://example.at:+4314841413">Malformed telephone-like target</a>
+            <a href="https://valid.example/path">Valid HTTPS target</a>
+            """,
+            candidate,
+        )
+
+        self.assertEqual(len(links), 1)
+        self.assertEqual(links[0]["target_url"], "https://valid.example/path")
+        self.assertEqual(links[0]["normalized_target_url"], "https://valid.example/path")
+
+    def test_malformed_link_does_not_fail_page_extraction(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            project_root = Path(tmp_dir)
+            write_temp_config(project_root)
+            db_path = init_database(project_root)
+            html_path = "data/raw/html/example.at/malformed-link.html.gz"
+            write_gzip_html(
+                project_root,
+                html_path,
+                """
+                <html><body>
+                <a href="https://example.at:+4314841413">Broken</a>
+                <a href="/valid">Valid</a>
+                <main>Extracted content</main>
+                </body></html>
+                """,
+            )
+            with sqlite3.connect(db_path) as connection:
+                insert_scraped_page(
+                    connection,
+                    url="https://example.at/source",
+                    domain="example.at",
+                    html_path=html_path,
+                )
+                connection.commit()
+
+            with patch(
+                "ai_ecosystem.extraction.run_extraction.extract_html_content",
+                return_value=ExtractedDocument("Extracted content"),
+            ):
+                summary = run_extraction(project_root=project_root)
+
+            with sqlite3.connect(db_path) as connection:
+                status = connection.execute("SELECT extraction_status FROM extracted_pages").fetchone()[0]
+                stored_links = connection.execute(
+                    "SELECT target_url FROM page_links ORDER BY link_order"
+                ).fetchall()
+
+            self.assertEqual(summary["successful"], 1)
+            self.assertEqual(summary["failed"], 0)
+            self.assertEqual(status, "success")
+            self.assertEqual(stored_links, [("https://example.at/valid",)])
+
+    def test_generic_domain_sample_selection_and_filter_intersection(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            project_root = Path(tmp_dir)
+            write_temp_config(project_root)
+            db_path = init_database(project_root)
+            with sqlite3.connect(db_path) as connection:
+                connection.row_factory = sqlite3.Row
+                connection.execute(
+                    "INSERT INTO sample_sets (sample_id, sample_name, created_at) VALUES (?, ?, ?)",
+                    ("ai_enriched_v1", "AI enriched", "2026-08-30T00:00:00+00:00"),
+                )
+                connection.execute(
+                    "INSERT INTO sample_sets (sample_id, sample_name, created_at) VALUES (?, ?, ?)",
+                    ("other_sample", "Other", "2026-08-30T00:00:00+00:00"),
+                )
+                connection.executemany(
+                    "INSERT INTO sample_domains (sample_id, domain, sample_rank) VALUES (?, ?, ?)",
+                    [
+                        ("ai_enriched_v1", "included.at", 1),
+                        ("ai_enriched_v1", "also-included.at", 2),
+                        ("other_sample", "excluded.at", 1),
+                    ],
+                )
+                included_id = insert_scraped_page(
+                    connection,
+                    url="https://included.at/page",
+                    domain="included.at",
+                    html_path="data/raw/html/included.at/page.html.gz",
+                )
+                also_included_id = insert_scraped_page(
+                    connection,
+                    url="https://also-included.at/page",
+                    domain="also-included.at",
+                    html_path="data/raw/html/also-included.at/page.html.gz",
+                )
+                excluded_id = insert_scraped_page(
+                    connection,
+                    url="https://excluded.at/page",
+                    domain="excluded.at",
+                    html_path="data/raw/html/excluded.at/page.html.gz",
+                )
+                failed_id = insert_scraped_page(
+                    connection,
+                    url="https://included.at/failed",
+                    domain="included.at",
+                    html_path="data/raw/html/included.at/failed.html.gz",
+                    scrape_status="timeout",
+                )
+                insert_validation_sample_row(
+                    connection,
+                    sample_id="smoke_v1",
+                    scraped_page_id=included_id,
+                    domain="included.at",
+                    url="https://included.at/page",
+                )
+                connection.commit()
+
+                selected = select_extraction_candidates(connection, domain_sample_id="ai_enriched_v1")
+                selected_ids = [candidate.scraped_page_id for candidate in selected]
+                intersected = select_extraction_candidates(
+                    connection,
+                    domain="included.at",
+                    sample_id="smoke_v1",
+                    domain_sample_id="ai_enriched_v1",
+                )
+                legacy_selected = select_extraction_candidates(connection, sample_id="smoke_v1")
+
+                with self.assertRaisesRegex(ValueError, "Unknown domain sample_id"):
+                    select_extraction_candidates(connection, domain_sample_id="missing_sample")
+
+            self.assertEqual(selected_ids, [also_included_id, included_id])
+            self.assertEqual([candidate.scraped_page_id for candidate in intersected], [included_id])
+            self.assertEqual([candidate.scraped_page_id for candidate in legacy_selected], [included_id])
+            self.assertNotIn(excluded_id, selected_ids)
+            self.assertNotIn(failed_id, selected_ids)
+
+    def test_generic_domain_sample_cli_argument(self) -> None:
+        args = build_parser().parse_args(["--sample-id", "ai_enriched_v1"])
+        self.assertEqual(args.domain_sample_id, "ai_enriched_v1")
+        self.assertIsNone(args.sample_id)
+
     def test_successful_extraction_writes_canonical_evidence_package(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             project_root = Path(tmp_dir)

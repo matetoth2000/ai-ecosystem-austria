@@ -1,0 +1,21 @@
+annotation_id: scorer_v2_page_annotation
+annotation_version: v1
+sample_id: scorer_v2_locked_retrieval_v1
+sample_directory: data/interim/calibration/page_annotation_samples/scorer_v2_locked_retrieval_v1
+output_root: data/interim/calibration/page_annotation_runs
+
+model: gpt-5.6-luna
+reasoning_effort: medium
+max_markdown_chars: 24000
+hidden_repeat_fraction: 0.05
+hidden_repeat_seed: 20260910
+completion_window: 24h
+retry_count: 2
+request_timeout_seconds: 180
+
+pricing_version: "2026-08-25"
+pricing:
+  input_per_million: 0.20
+  cached_input_per_million: 0.02
+  output_per_million: 1.20
+  batch_discount: 0.50

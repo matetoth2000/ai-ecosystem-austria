@@ -1,0 +1,61 @@
+sample_id: scorer_v2_page_annotation_v1
+sample_version: v1
+sampling_seed: 20260908
+
+output_directory: data/interim/calibration/page_annotation_samples/scorer_v2_page_annotation_v1
+
+calibration_sources:
+  - sample_id: pilot_v0_2
+    calibration_run_id: calibration_20260825T141041Z_ee153c3e
+    scoring_run_id: scoring_20260715T131248Z_f305ef18
+  - sample_id: ai_enriched_v1
+    calibration_run_id: calibration_20260830T181238Z_3cf58aed
+    scoring_run_id: scoring_20260830T185247Z_839a147c
+
+company_selection:
+  targets:
+    KEEP: 104
+    EXCLUDE: 80
+    UNKNOWN: 80
+  source_targets:
+    EXCLUDE:
+      ai_enriched_v1: 60
+      pilot_v0_2: 20
+    UNKNOWN:
+      ai_enriched_v1: 60
+      pilot_v0_2: 20
+
+splits:
+  development:
+    KEEP: 72
+    EXCLUDE: 56
+    UNKNOWN: 56
+  model_selection:
+    KEEP: 16
+    EXCLUDE: 12
+    UNKNOWN: 12
+  locked_retrieval_test:
+    KEEP: 16
+    EXCLUDE: 12
+    UNKNOWN: 12
+
+page_selection:
+  target_pages: 3500
+  minimum_pages: 3200
+  maximum_pages: 4000
+  absolute_company_cap: 24
+  allocation:
+    - maximum_available_pages: 5
+      selected_pages: 5
+    - maximum_available_pages: 20
+      selected_pages: 12
+    - maximum_available_pages: 100
+      selected_pages: 16
+    - maximum_available_pages: null
+      selected_pages: 20
+  pool_shares:
+    structural: 0.25
+    coverage_stratified: 0.25
+    deterministic_random: 0.20
+    previous_calibration_evidence: 0.15
+    scorer_v1_diagnostic: 0.15
