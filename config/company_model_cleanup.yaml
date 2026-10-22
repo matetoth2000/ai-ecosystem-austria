@@ -1,0 +1,15 @@
+experiment_id: company_ai_relevance_cleanup_v3
+parent_config: config/company_model_tuning.yaml
+parent_directory: data/interim/calibration/company_model_experiments/company_ai_relevance_tuning_v2
+output_directory: data/interim/calibration/company_model_experiments/company_ai_relevance_cleanup_v3
+cleanup:
+  version: grounded_cleanup_v1
+  provenance: Milestone 5.3b approved cleaning policy; frozen before comparison, not adapted to validation errors.
+  normalization: nfkc_casefold_word_tokens_v1
+  technical_unigrams: [ai, ki, ml, llm, llms, nlp, asr, tts, mlops, gpu, gpus, rag, cnn, rnn, rl, robotics, robotik, chatbot, chatbots, transformer, transformers, embeddings, maschinenlernen, computersehen, inference, inferenz]
+  additional_low_information_tokens: [bis, hin, how, know, state, art, technology, technologies, technologie, technologien, innovative, innovativ, cutting, leading, führend, führende, modernste]
+  maximum_generic_fraction: 0.5
+  minimum_groups: 2
+  maximum_group_fraction: 0.6
+  maximum_tokens: 5
+  deduplication: normalized_phrase_then_training_binary_vector_alias_union

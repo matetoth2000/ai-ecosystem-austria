@@ -817,6 +817,15 @@ def delete_discovery_candidate_pages_for_domains(
             DELETE FROM candidate_pages
             WHERE discovery_method IN ({", ".join("?" for _ in DISCOVERY_METHODS_TO_REFRESH)})
               AND domain IN ({placeholders})
+              AND NOT EXISTS (
+                  SELECT 1 FROM scraped_pages WHERE candidate_page_id = candidate_pages.id
+              )
+              AND NOT EXISTS (
+                  SELECT 1 FROM retention_validation_results WHERE candidate_page_id = candidate_pages.id
+              )
+              AND NOT EXISTS (
+                  SELECT 1 FROM retention_validation_sample WHERE candidate_page_id = candidate_pages.id
+              )
             """,
             (*DISCOVERY_METHODS_TO_REFRESH, *chunk),
         )
@@ -845,6 +854,23 @@ def delete_discovered_pages_for_domains(
             DELETE FROM discovered_pages
             WHERE discovery_method IN ({", ".join("?" for _ in DISCOVERY_METHODS_TO_REFRESH)})
               AND domain IN ({placeholders})
+              AND NOT EXISTS (
+                  SELECT 1 FROM scraped_pages WHERE discovered_page_id = discovered_pages.discovered_page_id
+              )
+              AND NOT EXISTS (
+                  SELECT 1 FROM retention_validation_sample
+                  WHERE discovered_page_id = discovered_pages.discovered_page_id
+              )
+              AND NOT EXISTS (
+                  SELECT 1 FROM retention_validation_inputs
+                  WHERE discovered_page_id = discovered_pages.discovered_page_id
+              )
+              AND NOT EXISTS (
+                  SELECT 1 FROM candidate_pages AS cp
+                  JOIN scraped_pages AS sp ON sp.candidate_page_id = cp.id
+                  WHERE cp.domain = discovered_pages.domain
+                    AND cp.normalized_url = discovered_pages.normalized_url
+              )
             """,
             (*DISCOVERY_METHODS_TO_REFRESH, *chunk),
         )
@@ -863,6 +889,29 @@ def upsert_discovered_pages(
     rows = list(candidates)
     if not rows:
         return 0
+    protected_urls = {
+        row[0]
+        for row in connection.execute(
+            """
+            SELECT DISTINCT dp.normalized_url
+            FROM discovered_pages AS dp
+            WHERE dp.domain = ?
+              AND (
+                  EXISTS (SELECT 1 FROM scraped_pages WHERE discovered_page_id = dp.discovered_page_id)
+                  OR EXISTS (SELECT 1 FROM retention_validation_sample
+                             WHERE discovered_page_id = dp.discovered_page_id)
+                  OR EXISTS (SELECT 1 FROM retention_validation_inputs
+                             WHERE discovered_page_id = dp.discovered_page_id)
+                  OR EXISTS (
+                      SELECT 1 FROM candidate_pages AS cp
+                      JOIN scraped_pages AS sp ON sp.candidate_page_id = cp.id
+                      WHERE cp.domain = dp.domain AND cp.normalized_url = dp.normalized_url
+                  )
+              )
+            """,
+            (domain,),
+        )
+    }
     connection.executemany(
         """
         INSERT INTO discovered_pages (
@@ -911,6 +960,7 @@ def upsert_discovered_pages(
                 discovered_at,
             )
             for candidate, retained_at_discovery, discard_reason in rows
+            if candidate.normalized_url not in protected_urls
         ],
     )
     return len(rows)
@@ -961,6 +1011,15 @@ def upsert_candidate_pages(
                 discovery_run_id = excluded.discovery_run_id,
                 priority = excluded.priority,
                 updated_at = CURRENT_TIMESTAMP
+            WHERE NOT EXISTS (
+                SELECT 1 FROM scraped_pages WHERE candidate_page_id = candidate_pages.id
+            )
+              AND NOT EXISTS (
+                SELECT 1 FROM retention_validation_results WHERE candidate_page_id = candidate_pages.id
+            )
+              AND NOT EXISTS (
+                SELECT 1 FROM retention_validation_sample WHERE candidate_page_id = candidate_pages.id
+            )
             """,
             (
                 domain,

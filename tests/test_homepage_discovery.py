@@ -20,6 +20,8 @@ from ai_ecosystem.discovery.homepage_discovery import (
     upsert_candidate_pages,
     update_domain_status,
 )
+from ai_ecosystem.acquisition.html_fetcher import existing_successful_scrape, select_candidate_pages
+from ai_ecosystem.acquisition.run_acquisition import AcquisitionConfig, acquire_candidate
 from ai_ecosystem.discovery.normalization import normalize_url
 from ai_ecosystem.discovery.robots_discovery import extract_sitemap_urls_from_robots
 from ai_ecosystem.discovery.sitemap_discovery import parse_sitemap_xml
@@ -706,6 +708,230 @@ class HomepageDiscoveryTest(unittest.TestCase):
             self.assertEqual(discovered_rows[2][3], 0)
             self.assertEqual(discovered_rows[2][4], "retention_cap")
             self.assertIn(("https://example.at/about", "about", 4, 1, None), discovered_rows)
+
+
+class DiscoveryRefreshTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp_dir.cleanup)
+        self.root = Path(self.temp_dir.name)
+        (self.root / "config").mkdir()
+        (self.root / "db").mkdir()
+        (self.root / "logs").mkdir()
+        (self.root / "config" / "config.yaml").write_text(
+            "\n".join(
+                [
+                    "database:",
+                    "  path: db/test.sqlite",
+                    "discovery:",
+                    "  request_timeout_seconds: 1",
+                    "  user_agent: TestBot/0.1",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        self.db_path = init_database(self.root)
+        with sqlite3.connect(self.db_path) as connection:
+            connection.execute("PRAGMA foreign_keys = ON")
+            connection.execute("INSERT INTO domains (domain) VALUES ('shared.example')")
+            for index in (1, 2):
+                sample_id = f"sample_{index}"
+                company_id = f"C{index}"
+                connection.execute(
+                    "INSERT INTO firms (bvd_id, normalized_domain) VALUES (?, 'shared.example')",
+                    (company_id,),
+                )
+                connection.execute(
+                    "INSERT INTO sample_sets (sample_id, sample_name, created_at) VALUES (?, ?, '2026-10-07')",
+                    (sample_id, sample_id),
+                )
+                connection.execute(
+                    "INSERT INTO sample_domains (sample_id, domain) VALUES (?, 'shared.example')",
+                    (sample_id,),
+                )
+                connection.execute(
+                    """INSERT INTO sample_companies
+                       (sample_id, company_id, sample_rank, normalized_domain, selection_reason)
+                       VALUES (?, ?, 1, 'shared.example', 'test')""",
+                    (sample_id, company_id),
+                )
+
+    def run_discovery(self, sample_id: str, run_id: str, paths: list[str]) -> None:
+        html = "<html><body>" + "".join(f'<a href="/{path}">{path}</a>' for path in paths) + "</body></html>"
+        homepage = FetchedHomepage(
+            requested_url="https://shared.example",
+            final_url="https://shared.example/",
+            status_code=200,
+            html=html,
+            page_title="Shared",
+        )
+        with (
+            patch("ai_ecosystem.discovery.homepage_discovery.find_project_root", return_value=self.root),
+            patch("ai_ecosystem.discovery.homepage_discovery.generate_discovery_run_id", return_value=run_id),
+            patch("ai_ecosystem.discovery.homepage_discovery.fetch_homepage", return_value=homepage),
+            patch(
+                "ai_ecosystem.discovery.homepage_discovery.discover_robots_txt_for_hosts",
+                return_value=(None, [], None, 0, 0),
+            ),
+            patch("ai_ecosystem.discovery.homepage_discovery.discover_sitemap_candidates", return_value=[]),
+        ):
+            run_homepage_discovery(sample_id=sample_id)
+
+    def save_acquired_page(self, path: str) -> tuple[int, int, int]:
+        url = f"https://shared.example/{path}"
+        with sqlite3.connect(self.db_path) as connection:
+            connection.execute("PRAGMA foreign_keys = ON")
+            discovered_id = connection.execute(
+                "SELECT discovered_page_id FROM discovered_pages WHERE normalized_url = ?", (url,)
+            ).fetchone()[0]
+            candidate_id = connection.execute(
+                "SELECT id FROM candidate_pages WHERE normalized_url = ?", (url,)
+            ).fetchone()[0]
+            cursor = connection.execute(
+                """INSERT INTO scraped_pages
+                   (candidate_page_id, discovered_page_id, url, domain, scrape_status, html_path,
+                    acquisition_run_id)
+                   VALUES (?, ?, ?, 'shared.example', 'success', 'saved.html', 'acquisition_1')""",
+                (candidate_id, discovered_id, url),
+            )
+            scraped_id = cursor.lastrowid
+            connection.execute(
+                """INSERT INTO extracted_pages
+                   (scraped_page_id, extraction_version, extraction_status, markdown_path)
+                   VALUES (?, 'v1', 'success', 'saved.md')""",
+                (scraped_id,),
+            )
+        return discovered_id, candidate_id, scraped_id
+
+    def test_shared_site_refresh_reuses_acquired_pages_and_adds_new_urls(self) -> None:
+        self.run_discovery("sample_1", "discovery_1", ["saved", "old-only", "stale"])
+        saved_ids = {path: self.save_acquired_page(path) for path in ("saved", "old-only")}
+        self.run_discovery("sample_2", "discovery_2", ["saved", "new"])
+
+        with sqlite3.connect(self.db_path) as connection:
+            connection.execute("PRAGMA foreign_keys = ON")
+            connection.row_factory = sqlite3.Row
+            pages = select_candidate_pages(connection, "sample_2", "discovered")
+            by_path = {page.normalized_url.rsplit("/", 1)[-1]: page for page in pages}
+            self.assertEqual(set(by_path), {"saved", "old-only", "new"})
+            self.assertEqual(
+                connection.execute(
+                    "SELECT COUNT(*) FROM discovered_pages WHERE normalized_url = 'https://shared.example/saved'"
+                ).fetchone()[0],
+                1,
+            )
+            self.assertEqual(
+                (by_path["saved"].discovered_page_id, by_path["saved"].candidate_page_id),
+                saved_ids["saved"][:2],
+            )
+            self.assertEqual(by_path["saved"].discovery_run_id, "discovery_1")
+            self.assertEqual(by_path["old-only"].discovery_run_id, "discovery_1")
+            self.assertEqual(by_path["new"].discovery_run_id, "discovery_2")
+            for path, (discovered_id, candidate_id, scraped_id) in saved_ids.items():
+                self.assertEqual(
+                    connection.execute(
+                        "SELECT discovery_run_id FROM candidate_pages WHERE id = ?", (candidate_id,)
+                    ).fetchone()[0], "discovery_1"
+                )
+                self.assertEqual(
+                    tuple(connection.execute(
+                        "SELECT discovered_page_id, candidate_page_id, acquisition_run_id "
+                        "FROM scraped_pages WHERE scraped_page_id = ?", (scraped_id,)
+                    ).fetchone()),
+                    (discovered_id, candidate_id, "acquisition_1"),
+                )
+                self.assertEqual(
+                    connection.execute(
+                        "SELECT extraction_status FROM extracted_pages WHERE scraped_page_id = ?",
+                        (scraped_id,),
+                    ).fetchone()[0], "success"
+                )
+            self.assertIsNone(
+                existing_successful_scrape(
+                    connection, by_path["new"].candidate_page_id, by_path["new"].discovered_page_id
+                )
+            )
+            self.assertEqual(connection.execute("PRAGMA foreign_key_check").fetchall(), [])
+            self.assertEqual(
+                connection.execute("SELECT COUNT(*) FROM extracted_pages").fetchone()[0], 2
+            )
+            self.assertEqual(
+                connection.execute("SELECT COUNT(*) FROM sample_companies").fetchone()[0], 2
+            )
+
+        config = AcquisitionConfig(1, 0, 1, True, False, "TestBot/0.1", 1)
+        with patch("ai_ecosystem.acquisition.run_acquisition.fetch_candidate_page") as fetch:
+            for path in ("saved", "old-only"):
+                result = acquire_candidate(self.db_path, self.root, by_path[path], "acquisition_2", config)
+                self.assertTrue(result.skipped_existing)
+            fetch.assert_not_called()
+
+        self.run_discovery("sample_2", "discovery_3", ["saved", "new"])
+        with sqlite3.connect(self.db_path) as connection:
+            connection.execute("PRAGMA foreign_keys = ON")
+            self.assertEqual(
+                connection.execute(
+                    "SELECT COUNT(*) FROM discovered_pages WHERE domain = 'shared.example'"
+                ).fetchone()[0], 3
+            )
+            self.assertEqual(
+                connection.execute(
+                    "SELECT COUNT(*) FROM scraped_pages WHERE acquisition_run_id = 'acquisition_1'"
+                ).fetchone()[0], 2
+            )
+            self.assertEqual(connection.execute("PRAGMA foreign_key_check").fetchall(), [])
+
+    def test_candidate_only_success_survives_refresh_and_is_skipped(self) -> None:
+        with sqlite3.connect(self.db_path) as connection:
+            connection.execute("PRAGMA foreign_keys = ON")
+            candidate_id = connection.execute(
+                """INSERT INTO candidate_pages
+                   (domain, url, normalized_url, discovery_method, discovery_run_id)
+                   VALUES ('shared.example', 'https://shared.example/legacy',
+                           'https://shared.example/legacy', 'homepage', 'legacy_run')"""
+            ).lastrowid
+            connection.execute(
+                """INSERT INTO scraped_pages
+                   (candidate_page_id, url, domain, scrape_status, html_path)
+                   VALUES (?, 'https://shared.example/legacy', 'shared.example', 'success', 'legacy.html')""",
+                (candidate_id,),
+            )
+        self.run_discovery("sample_2", "discovery_2", ["legacy", "new"])
+        with sqlite3.connect(self.db_path) as connection:
+            connection.row_factory = sqlite3.Row
+            pages = select_candidate_pages(connection, "sample_2", "discovered")
+            legacy = next(page for page in pages if page.normalized_url.endswith("/legacy"))
+            self.assertEqual(legacy.candidate_page_id, candidate_id)
+            self.assertEqual(legacy.discovery_run_id, "legacy_run")
+            self.assertEqual(
+                connection.execute("SELECT discovery_run_id FROM candidate_pages WHERE id = ?", (candidate_id,))
+                .fetchone()[0], "legacy_run"
+            )
+            self.assertIsNotNone(
+                existing_successful_scrape(connection, legacy.candidate_page_id, legacy.discovered_page_id)
+            )
+
+    def test_refresh_failure_rolls_back_cleanup(self) -> None:
+        self.run_discovery("sample_1", "discovery_1", ["unacquired"])
+        with patch(
+            "ai_ecosystem.discovery.homepage_discovery.delete_discovery_candidate_pages_for_domains",
+            side_effect=sqlite3.IntegrityError("injected cleanup failure"),
+        ):
+            with self.assertRaisesRegex(sqlite3.IntegrityError, "injected cleanup failure"):
+                self.run_discovery("sample_2", "discovery_2", ["new"])
+        with sqlite3.connect(self.db_path) as connection:
+            self.assertEqual(
+                connection.execute("SELECT COUNT(*) FROM discovered_pages WHERE discovery_run_id = 'discovery_1'")
+                .fetchone()[0], 1
+            )
+            self.assertEqual(
+                connection.execute("SELECT COUNT(*) FROM candidate_pages WHERE discovery_run_id = 'discovery_1'")
+                .fetchone()[0], 1
+            )
+            self.assertEqual(
+                connection.execute("SELECT COUNT(*) FROM discovery_runs WHERE run_id = 'discovery_2'")
+                .fetchone()[0], 0
+            )
 
 
 if __name__ == "__main__":

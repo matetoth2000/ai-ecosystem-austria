@@ -6,10 +6,13 @@ import argparse
 import logging
 import sqlite3
 import time
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from contextlib import closing
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from threading import Lock
 
 from ai_ecosystem.acquisition.html_fetcher import (
     ERROR_STATUSES,
@@ -20,6 +23,7 @@ from ai_ecosystem.acquisition.html_fetcher import (
     fetch_candidate_page,
     generate_acquisition_run_id,
     insert_acquisition_run,
+    measure_stage,
     select_candidate_pages,
     setup_acquisition_logger,
     upsert_scraped_page,
@@ -43,6 +47,7 @@ class AcquisitionConfig:
     force_refresh: bool
     user_agent: str
     progress_log_every_n_pages: int
+    consecutive_connection_failure_threshold: int = 5
 
 
 @dataclass(frozen=True)
@@ -51,6 +56,44 @@ class AcquisitionWorkerResult:
     fetch_result: FetchResult | None
     skipped_existing: bool = False
     unexpected_error: str | None = None
+    deferred_reason: str | None = None
+
+
+CONNECTION_FAILURE_STATUSES = frozenset({"timeout", "connection_error", "dns_error", "ssl_error"})
+
+
+class DomainFailureGuard:
+    """Latch a domain for this run after consecutive exhausted connection failures."""
+
+    def __init__(self, threshold: int) -> None:
+        if threshold < 1:
+            raise ValueError("acquisition.consecutive_connection_failure_threshold must be positive")
+        self.threshold = threshold
+        self._lock = Lock()
+        self._consecutive: dict[str, int] = {}
+        self._deferred: dict[str, tuple[str, str]] = {}
+
+    def try_start(self, domain: str) -> str | None:
+        with self._lock:
+            entry = self._deferred.get(domain)
+            return entry[0] if entry else None
+
+    def record_result(self, domain: str, result: FetchResult) -> str | None:
+        with self._lock:
+            if result.http_status is not None:
+                self._consecutive[domain] = 0
+            elif result.scrape_status in CONNECTION_FAILURE_STATUSES:
+                count = self._consecutive.get(domain, 0) + 1
+                self._consecutive[domain] = count
+                if count >= self.threshold and domain not in self._deferred:
+                    reason = f"{self.threshold}_consecutive_connection_failures"
+                    self._deferred[domain] = (reason, result.scrape_status)
+                    return reason
+        return None
+
+    def deferred_domains(self) -> dict[str, tuple[str, str]]:
+        with self._lock:
+            return dict(self._deferred)
 
 
 def format_duration(seconds: float) -> str:
@@ -63,6 +106,9 @@ def format_duration(seconds: float) -> str:
 def load_acquisition_config(config: dict, force_refresh: bool, max_workers: int | None = None) -> AcquisitionConfig:
     acquisition_config = config.get("acquisition", {})
     discovery_config = config.get("discovery", {})
+    failure_threshold = int(acquisition_config.get("consecutive_connection_failure_threshold", 5))
+    if failure_threshold < 1:
+        raise ValueError("acquisition.consecutive_connection_failure_threshold must be positive")
     return AcquisitionConfig(
         timeout_seconds=int(acquisition_config.get("timeout_seconds", 15)),
         retry_count=int(acquisition_config.get("retry_count", 2)),
@@ -71,6 +117,7 @@ def load_acquisition_config(config: dict, force_refresh: bool, max_workers: int 
         force_refresh=force_refresh or bool(acquisition_config.get("force_refresh", False)),
         user_agent=discovery_config.get("user_agent", "AIAustriaResearchBot/0.1"),
         progress_log_every_n_pages=max(1, int(acquisition_config.get("progress_log_every_n_pages", 25))),
+        consecutive_connection_failure_threshold=failure_threshold,
     )
 
 
@@ -80,35 +127,72 @@ def acquire_candidate(
     candidate: CandidatePage,
     acquisition_run_id: str,
     acquisition_config: AcquisitionConfig,
+    failure_guard: DomainFailureGuard | None = None,
 ) -> AcquisitionWorkerResult:
-    with sqlite3.connect(db_path, timeout=60) as connection:
-        connection.row_factory = sqlite3.Row
-        connection.execute("PRAGMA foreign_keys = ON;")
-        ensure_acquisition_schema(connection)
-        existing = existing_successful_scrape(
-            connection,
-            candidate.candidate_page_id,
-            candidate.discovered_page_id,
-        )
-        if acquisition_config.skip_existing and not acquisition_config.force_refresh and existing:
-            return AcquisitionWorkerResult(candidate=candidate, fetch_result=None, skipped_existing=True)
-
-    result = fetch_candidate_page(
-        candidate,
-        project_root,
-        acquisition_run_id,
-        acquisition_config.timeout_seconds,
-        acquisition_config.retry_count,
-        acquisition_config.user_agent,
+    # The coordinator initializes the schema before submitting any workers.
+    # Re-running migrations here rebuilds whole-table indexes for every page.
+    timings = dict.fromkeys(
+        ("database_read", "download", "html_processing", "html_storage", "database_write"), 0.0
     )
+    started = time.perf_counter()
+    status = "unexpected_error"
+    try:
+        with measure_stage(timings, "database_read"):
+            with closing(sqlite3.connect(db_path, timeout=60)) as connection:
+                connection.row_factory = sqlite3.Row
+                connection.execute("PRAGMA foreign_keys = ON;")
+                existing = existing_successful_scrape(
+                    connection, candidate.candidate_page_id, candidate.discovered_page_id
+                )
+                if acquisition_config.skip_existing and not acquisition_config.force_refresh and existing:
+                    status = "skipped_existing"
+                    return AcquisitionWorkerResult(candidate=candidate, fetch_result=None, skipped_existing=True)
 
-    with sqlite3.connect(db_path, timeout=60) as connection:
-        connection.execute("PRAGMA foreign_keys = ON;")
-        ensure_acquisition_schema(connection)
-        upsert_scraped_page(connection, result)
-        connection.commit()
+        if failure_guard is not None:
+            deferred_reason = failure_guard.try_start(candidate.domain)
+            if deferred_reason is not None:
+                status = "deferred"
+                logging.getLogger(f"acquisition.{acquisition_run_id}").info(
+                    "url_deferred url=%s domain=%s reason=%s",
+                    candidate.url, candidate.domain, deferred_reason,
+                )
+                return AcquisitionWorkerResult(
+                    candidate=candidate, fetch_result=None, deferred_reason=deferred_reason
+                )
 
-    return AcquisitionWorkerResult(candidate=candidate, fetch_result=result)
+        result = fetch_candidate_page(
+            candidate,
+            project_root,
+            acquisition_run_id,
+            acquisition_config.timeout_seconds,
+            acquisition_config.retry_count,
+            acquisition_config.user_agent,
+            None,
+            timings,
+        )
+        with measure_stage(timings, "database_write"):
+            with closing(sqlite3.connect(db_path, timeout=60)) as connection:
+                connection.execute("PRAGMA foreign_keys = ON;")
+                with connection:
+                    upsert_scraped_page(connection, result)
+        if failure_guard is not None:
+            reason = failure_guard.record_result(candidate.domain, result)
+            if reason is not None:
+                logging.getLogger(f"acquisition.{acquisition_run_id}").warning(
+                    "domain_deferred domain=%s reason=%s trigger_status=%s threshold=%s",
+                    candidate.domain, reason, result.scrape_status, failure_guard.threshold,
+                )
+        status = result.scrape_status
+        return AcquisitionWorkerResult(candidate=candidate, fetch_result=result)
+    finally:
+        logging.getLogger(f"acquisition.{acquisition_run_id}").info(
+            "page_timing discovered_page_id=%s candidate_page_id=%s domain=%s outcome=%s "
+            "database_read_seconds=%.6f download_seconds=%.6f html_processing_seconds=%.6f "
+            "html_storage_seconds=%.6f database_write_seconds=%.6f worker_seconds=%.6f",
+            candidate.discovered_page_id, candidate.candidate_page_id, candidate.domain, status,
+            timings["database_read"], timings["download"], timings["html_processing"],
+            timings["html_storage"], timings["database_write"], time.perf_counter() - started,
+        )
 
 
 def log_run_start(
@@ -123,7 +207,8 @@ def log_run_start(
     logger.info("run_start acquisition_run_id=%s", acquisition_run_id)
     logger.info(
         "config sample_id=%s fetch_scope=%s max_pages=%s max_workers=%s timeout_seconds=%s retry_count=%s "
-        "skip_existing=%s force_refresh=%s user_agent=%s progress_log_every_n_pages=%s selected_pages=%s",
+        "skip_existing=%s force_refresh=%s user_agent=%s progress_log_every_n_pages=%s "
+        "consecutive_connection_failure_threshold=%s selected_pages=%s",
         sample_id,
         fetch_scope,
         max_pages,
@@ -134,6 +219,7 @@ def log_run_start(
         acquisition_config.force_refresh,
         acquisition_config.user_agent,
         acquisition_config.progress_log_every_n_pages,
+        acquisition_config.consecutive_connection_failure_threshold,
         selected_pages,
     )
 
@@ -145,6 +231,7 @@ def print_progress(
     pages_failed: int,
     pages_skipped: int,
     started_monotonic: float,
+    pages_deferred: int = 0,
 ) -> None:
     elapsed = max(0.001, time.monotonic() - started_monotonic)
     rate = completed / elapsed
@@ -154,6 +241,7 @@ def print_progress(
         f"Success: {pages_fetched} "
         f"Failed: {pages_failed} "
         f"Skipped: {pages_skipped} "
+        f"Deferred: {pages_deferred} "
         f"Rate: {rate:.2f} pages/sec "
         f"Elapsed: {format_duration(elapsed)}"
     )
@@ -169,11 +257,13 @@ def finalize_acquisition_run(
     pages_skipped: int,
     elapsed_seconds: float,
     final_status: str,
+    pages_selected: int | None = None,
+    pages_deferred: int = 0,
+    deferred_domains: dict[str, dict[str, object]] | None = None,
 ) -> float:
     success_rate = (pages_fetched / pages_attempted * 100) if pages_attempted else 0.0
-    with sqlite3.connect(db_path, timeout=60) as connection:
+    with closing(sqlite3.connect(db_path, timeout=60)) as connection:
         connection.execute("PRAGMA foreign_keys = ON;")
-        ensure_acquisition_schema(connection)
         update_acquisition_run(
             connection,
             acquisition_run_id,
@@ -187,16 +277,24 @@ def finalize_acquisition_run(
 
     logger.info(
         "run_complete acquisition_run_id=%s final_status=%s pages_attempted=%s pages_fetched=%s "
-        "pages_failed=%s pages_skipped=%s success_rate=%.2f elapsed_seconds=%.2f",
+        "pages_failed=%s pages_skipped=%s pages_deferred=%s pages_selected=%s "
+        "success_rate=%.2f elapsed_seconds=%.2f",
         acquisition_run_id,
         final_status,
         pages_attempted,
         pages_fetched,
         pages_failed,
         pages_skipped,
+        pages_deferred,
+        pages_selected,
         success_rate,
         elapsed_seconds,
     )
+    for domain, details in sorted((deferred_domains or {}).items()):
+        logger.info(
+            "deferred_summary domain=%s reason=%s trigger_status=%s deferred_urls=%s",
+            domain, details["reason"], details["trigger_status"], details["count"],
+        )
     return success_rate
 
 
@@ -216,7 +314,8 @@ def run_acquisition(
     logger = setup_acquisition_logger(project_root, acquisition_run_id)
     started_at = utc_now_iso()
 
-    with sqlite3.connect(db_path, timeout=60) as connection:
+    setup_started = time.monotonic()
+    with closing(sqlite3.connect(db_path, timeout=60)) as connection:
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON;")
         ensure_acquisition_schema(connection)
@@ -237,6 +336,8 @@ def run_acquisition(
         )
         connection.commit()
 
+    logger.info("setup_seconds=%.6f", time.monotonic() - setup_started)
+
     log_run_start(
         logger,
         acquisition_run_id,
@@ -256,6 +357,9 @@ def run_acquisition(
     pages_fetched = 0
     pages_failed = 0
     pages_skipped = 0
+    pages_deferred = 0
+    deferred_counts: Counter[str] = Counter()
+    failure_guard = DomainFailureGuard(acquisition_config.consecutive_connection_failure_threshold)
     completed = 0
     started_monotonic = time.monotonic()
     success_rate = 0.0
@@ -272,6 +376,7 @@ def run_acquisition(
                 candidate,
                 acquisition_run_id,
                 acquisition_config,
+                failure_guard,
             ): candidate
             for candidate in candidates
         }
@@ -292,6 +397,9 @@ def run_acquisition(
             else:
                 if worker_result.skipped_existing:
                     pages_skipped += 1
+                elif worker_result.deferred_reason is not None:
+                    pages_deferred += 1
+                    deferred_counts[candidate.domain] += 1
                 elif worker_result.fetch_result is None:
                     pages_failed += 1
                     logger.error(
@@ -333,6 +441,7 @@ def run_acquisition(
                     pages_failed,
                     pages_skipped,
                     started_monotonic,
+                    pages_deferred,
                 )
     except KeyboardInterrupt as error:
         final_status = "interrupted"
@@ -349,27 +458,38 @@ def run_acquisition(
     finally:
         executor.shutdown(wait=True, cancel_futures=True)
         elapsed_seconds = time.monotonic() - started_monotonic
+        deferred_domains = {
+            domain: {"reason": reason, "trigger_status": trigger, "count": deferred_counts[domain]}
+            for domain, (reason, trigger) in sorted(failure_guard.deferred_domains().items())
+        }
+        pages_attempted = completed - pages_skipped - pages_deferred
         success_rate = finalize_acquisition_run(
             db_path,
             logger,
             acquisition_run_id,
-            len(candidates),
+            pages_attempted,
             pages_fetched,
             pages_failed,
             pages_skipped,
             elapsed_seconds,
             final_status,
+            pages_selected=len(candidates),
+            pages_deferred=pages_deferred,
+            deferred_domains=deferred_domains,
         )
 
     if pending_exception is not None:
         print("Acquisition summary")
         print(f"  Run ID: {acquisition_run_id}")
         print(f"  Final status: {final_status}")
-        print(f"  Pages attempted: {len(candidates)}")
+        print(f"  Pages selected: {len(candidates)}")
+        print(f"  Pages attempted: {pages_attempted}")
         print(f"  Pages completed: {completed}")
         print(f"  Pages fetched: {pages_fetched}")
         print(f"  Pages failed: {pages_failed}")
         print(f"  Pages skipped: {pages_skipped}")
+        print(f"  Pages deferred: {pages_deferred}")
+        print(f"  Deferred domains: {deferred_domains}")
         print(f"  Success rate: {success_rate:.1f}%")
         print(f"  Elapsed: {format_duration(time.monotonic() - started_monotonic)}")
         print(f"  Log path: {project_root / 'logs' / f'acquisition_{acquisition_run_id}.log'}")
@@ -377,10 +497,13 @@ def run_acquisition(
 
     print("Acquisition summary")
     print(f"  Run ID: {acquisition_run_id}")
-    print(f"  Pages attempted: {len(candidates)}")
+    print(f"  Pages selected: {len(candidates)}")
+    print(f"  Pages attempted: {pages_attempted}")
     print(f"  Pages fetched: {pages_fetched}")
     print(f"  Pages failed: {pages_failed}")
     print(f"  Pages skipped: {pages_skipped}")
+    print(f"  Pages deferred: {pages_deferred}")
+    print(f"  Deferred domains: {deferred_domains}")
     print(f"  Success rate: {success_rate:.1f}%")
     print(f"  Elapsed: {format_duration(time.monotonic() - started_monotonic)}")
     print(f"  Log path: {project_root / 'logs' / f'acquisition_{acquisition_run_id}.log'}")
@@ -389,10 +512,13 @@ def run_acquisition(
         "acquisition_run_id": acquisition_run_id,
         "sample_id": sample_id,
         "fetch_scope": fetch_scope,
-        "pages_attempted": len(candidates),
+        "pages_selected": len(candidates),
+        "pages_attempted": pages_attempted,
         "pages_fetched": pages_fetched,
         "pages_failed": pages_failed,
         "pages_skipped": pages_skipped,
+        "pages_deferred": pages_deferred,
+        "deferred_domains": deferred_domains,
         "success_rate": success_rate,
         "elapsed_seconds": time.monotonic() - started_monotonic,
     }

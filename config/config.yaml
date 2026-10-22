@@ -12,6 +12,7 @@ acquisition:
   skip_existing: true
   force_refresh: false
   progress_log_every_n_pages: 25
+  consecutive_connection_failure_threshold: 5
 
 extraction:
   extraction_version: v1

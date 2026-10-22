@@ -1,0 +1,20 @@
+experiment_id: company_ai_relevance_tuning_v2
+dataset_directory: data/interim/calibration/company_modeling_datasets/company_ai_relevance_v1
+output_directory: data/interim/calibration/company_model_experiments/company_ai_relevance_tuning_v2
+lexicon_path: config/company_tuning_lexicon.yaml
+seeds: [20260916, 20260917]
+outer_folds: 5
+inner_folds: 3
+logistic_c: [0.1, 1.0, 10.0]
+maximum_iterations: 5000
+ap_tolerance: 0.01
+bootstrap_replicates: 1000
+bootstrap_seed: 20260918
+blas_threads: 1
+support_cap: 5
+size_caps: {contents: 50, words: 50000, median_words: 2000}
+phrase_minimum_groups: 2
+phrase_maximum_group_fraction: 0.60
+phrase_maximum_tokens: 5
+vocabulary_change_fraction: 0.20
+improvement: {ap: 0.02, f1: 0.02, effort: 0.05, recall_loss: 0.02, f1_loss: 0.01}

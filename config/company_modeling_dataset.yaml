@@ -1,0 +1,40 @@
+dataset_id: company_ai_relevance_v1
+dataset_version: v1
+output_directory: data/interim/calibration/company_modeling_datasets/company_ai_relevance_v1
+extraction_version: v1
+calibration_runs:
+  - calibration_20260825T141041Z_ee153c3e
+  - calibration_20260830T181238Z_3cf58aed
+package_directory: data/interim/calibration/company_evidence
+seed: 20260915
+split_fractions: [0.6, 0.2, 0.2]
+development_folds: 5
+aggregation:
+  top_k: [3, 5]
+  support_cap: 5
+overlap:
+  substantive_words: 100
+  shingle_size: 5
+  jaccard: 0.90
+  material_pages: 3
+  smaller_site_fraction: 0.5
+  fingerprint_size: 16
+  maximum_fingerprint_bucket: 100
+  generic_maximum_words: 300
+  generic_markers: [cookie, cookies, datenschutz, privacy, lorem ipsum, coming soon, javascript, wordpress]
+text:
+  max_features: 50000
+  ngram_max: 2
+  include_meta_description: false
+phrases:
+  ngram_max: 5
+  minimum_training_groups: 2
+  acronym_allowlist: [ai, ki, ml, nlp, llm, gpu, mlops]
+  stopwords: [the, a, an, and, or, of, for, to, in, on, with, is, are, we, our, der, die, das, und, oder, von, fuer, fur, im, mit, ist, sind, wir, unser]
+# Objective-defined indicators, not trained weights or classification rules.
+# Source: the project's AI mapping objective; bilingual research vocabulary.
+lexicon_version: objective_en_de_v1
+lexicon:
+  explicit_ai: [artificial intelligence, "künstliche intelligenz", machine learning, maschinelles lernen, deep learning, computer vision, natural language processing, generative ai, large language model, llm, neural network, neuronale netze]
+  adjacent: [robotics, robotik, sensor fusion, predictive analytics, autonomous systems, autonome systeme, data science, mlops]
+  ambiguous: [automation, automatisierung, optimization, optimierung, smart]

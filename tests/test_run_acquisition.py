@@ -309,7 +309,8 @@ class RunAcquisitionTest(unittest.TestCase):
                 )
 
             fetch_mock.assert_not_called()
-            self.assertEqual(summary["pages_attempted"], 1)
+            self.assertEqual(summary["pages_selected"], 1)
+            self.assertEqual(summary["pages_attempted"], 0)
             self.assertEqual(summary["pages_fetched"], 0)
             self.assertEqual(summary["pages_failed"], 0)
             self.assertEqual(summary["pages_skipped"], 1)
@@ -378,7 +379,7 @@ class RunAcquisitionTest(unittest.TestCase):
                 ).fetchone()
 
             self.assertIsNotNone(row[0])
-            self.assertEqual(row[1], 1)
+            self.assertEqual(row[1], 0)
             self.assertEqual(row[2], 0)
             self.assertEqual(row[3], 0)
             self.assertEqual(row[4], 0.0)

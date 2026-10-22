@@ -1,0 +1,477 @@
+{
+  "type": "object",
+  "properties": {
+    "ai_active": {
+      "$ref": "#/$defs/assessment"
+    },
+    "ai_adjacent": {
+      "$ref": "#/$defs/assessment"
+    },
+    "attribution": {
+      "$ref": "#/$defs/attribution"
+    },
+    "evidence_adequacy": {
+      "$ref": "#/$defs/adequacy"
+    },
+    "ai_summary": {
+      "type": "string"
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/role"
+      }
+    },
+    "technologies": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/technology"
+      }
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/entity"
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/relationship"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidence"
+      }
+    },
+    "unmapped_findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/unmapped_finding"
+      }
+    }
+  },
+  "required": [
+    "ai_active",
+    "ai_adjacent",
+    "attribution",
+    "evidence_adequacy",
+    "ai_summary",
+    "roles",
+    "technologies",
+    "entities",
+    "relationships",
+    "evidence",
+    "unmapped_findings"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "assessment": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "confidence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "basis": {
+          "type": "string",
+          "enum": [
+            "explicit",
+            "inferred_compute",
+            "inferred_data",
+            "none"
+          ]
+        },
+        "attribution_scope": {
+          "type": ["string", "null"],
+          "enum": ["website_business", "focal_unit", "group", null]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "operational",
+            "pilot_research",
+            "planned_only",
+            "historical_only",
+            "unclear",
+            "not_applicable"
+          ]
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "confidence",
+        "basis",
+        "attribution_scope",
+        "status",
+        "evidence_ids",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "attribution": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "confidence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "confidence",
+        "evidence_ids",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "adequacy": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string",
+          "enum": [
+            "sufficient",
+            "insufficient",
+            "unclear"
+          ]
+        },
+        "confidence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "confidence",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "role": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "type": "string",
+          "enum": [
+            "model_developer",
+            "application_provider",
+            "consulting_integration_provider",
+            "infrastructure_tooling_provider",
+            "data_content_provider",
+            "adopter",
+            "research_testing_participant",
+            "governance_assurance_provider",
+            "education_training_provider"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "operational",
+            "pilot_research"
+          ]
+        },
+        "confidence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "role",
+        "status",
+        "confidence",
+        "evidence_ids"
+      ],
+      "additionalProperties": false
+    },
+    "technology": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string",
+          "enum": [
+            "machine_learning",
+            "deep_learning",
+            "nlp",
+            "computer_vision",
+            "speech_audio",
+            "generative_ai_llm",
+            "predictive_modeling",
+            "recommendation_optimization",
+            "knowledge_based_ai",
+            "robotics_autonomy",
+            "mlops",
+            "unspecified_ai"
+          ]
+        },
+        "term": {
+          "type": "string"
+        },
+        "context": {
+          "type": "string",
+          "enum": [
+            "develops",
+            "provides",
+            "integrates",
+            "uses",
+            "researches_tests",
+            "contextual_mention"
+          ]
+        },
+        "confidence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "category",
+        "term",
+        "context",
+        "confidence",
+        "evidence_ids"
+      ],
+      "additionalProperties": false
+    },
+    "entity": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "organization",
+            "group_organization",
+            "project"
+          ]
+        },
+        "confidence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "type",
+        "confidence",
+        "evidence_ids"
+      ],
+      "additionalProperties": false
+    },
+    "relationship": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "supplies_ai_to",
+            "integrates_ai_from",
+            "supplies_ai_infrastructure_to",
+            "supplies_ai_data_to",
+            "collaborates_on_ai_with",
+            "invests_in",
+            "owns_stake_in",
+            "funds",
+            "partners_with",
+            "member_of",
+            "acquires",
+            "spun_out_of",
+            "incubated_or_accelerated_by",
+            "participates_in_project"
+          ]
+        },
+        "target": {
+          "type": "string"
+        },
+        "ai_context": {
+          "type": "string",
+          "enum": [
+            "explicit_ai",
+            "general_ecosystem"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "current",
+            "planned",
+            "historical",
+            "unclear"
+          ]
+        },
+        "date_text": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "context": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "source",
+        "type",
+        "target",
+        "ai_context",
+        "status",
+        "date_text",
+        "context",
+        "confidence",
+        "evidence_ids"
+      ],
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "page_id": {
+          "type": "string"
+        },
+        "quote": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "page_id",
+        "quote"
+      ],
+      "additionalProperties": false
+    },
+    "unmapped_finding": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "role",
+            "technology",
+            "relationship"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "source_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "target_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "affects_eligibility": {
+          "type": "boolean"
+        },
+        "confidence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "kind",
+        "description",
+        "source_name",
+        "target_name",
+        "affects_eligibility",
+        "confidence",
+        "evidence_ids"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,19 @@
+experiment_id: company_ai_relevance_comparison_v1
+dataset_directory: data/interim/calibration/company_modeling_datasets/company_ai_relevance_v1
+output_directory: data/interim/calibration/company_model_experiments/company_ai_relevance_comparison_v1
+seed: 20260916
+logistic_c: [0.1, 1.0, 10.0]
+tree_leaves: [3, 7]
+tree_minimum_samples: [10, 20]
+tree_iterations: 200
+tree_learning_rate: 0.05
+tree_l2: 1.0
+maximum_iterations: 5000
+ap_tolerance: 0.01
+minimum_text_groups: 2
+bootstrap_replicates: 1000
+random_seeds: 100
+blas_threads: 1
+fractions: [0.01, 0.02, 0.05, 0.10, 0.20, 0.40, 0.60, 0.80, 1.0]
+absolute_k: [5, 10, 20, 40]
+capture_targets: [0.80, 0.90, 0.95]

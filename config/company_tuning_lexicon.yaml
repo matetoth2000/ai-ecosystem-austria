@@ -1,0 +1,58 @@
+version: objective_en_de_v2
+provenance: Project AI-mapping objective and bilingual technical terminology; defined before this tuning comparison, not mined from evaluation labels.
+normalization: nfkc_casefold_word_tokens_v1
+matching: contiguous_token_boundaries
+acronyms: [ai, ki, ml, llm, llms, nlp, asr, tts, mlops, gpu, gpus, rag, cnn, rnn, rl]
+context_terms: [model, models, modell, modelle, training, lernen, learning, neural, neuronal, neuronale, inference, inferenz, daten, data, algorithm, algorithmus, intelligence, intelligenz]
+technical_unigrams: [robotics, robotik, chatbots, chatbot, transformer, transformers, neuronale, neuronal, reinforcement, inference, inferenz, embeddings, computersehen, maschinenlernen, mlops]
+stopwords: [the, a, an, and, or, of, for, to, in, on, with, is, are, we, our, you, your, at, by, from, this, that, these, those, as, it, its, be, been, being, have, has, had, can, could, will, would, also, more, most, all, not, no, der, die, das, den, dem, des, ein, eine, einer, einem, einen, eines, und, oder, von, fuer, für, fur, im, mit, ist, sind, wir, unser, unsere, unseren, sie, ihr, ihre, ihrer, ihren, auf, bei, zu, zum, zur, aus, als, sich, auch, durch, nach, über, ueber, unter, an, am, es, werden, wird, wurde, wurden, sein, haben, hat, können, kann, sowie, diese, dieser, dieses, einem, einen]
+generic_tokens: [company, companies, business, services, service, solutions, solution, products, product, team, contact, home, welcome, quality, customer, customers, information, more, website, webseite, unternehmen, firma, firmen, leistungen, dienstleistungen, lösung, lösungen, loesungen, produkte, produkt, kontakt, startseite, willkommen, qualität, kunden, kunde, informationen, erfahren, bieten, bietet, gmbh, ag, kg, ltd, limited, copyright, cookies, datenschutz, privacy]
+categories:
+  artificial_intelligence:
+    band: explicit_ai
+    rationale: Direct statements of artificial intelligence, not generic digitalization.
+    aliases: [artificial intelligence, künstliche intelligenz, kuenstliche intelligenz, artificial general intelligence, ai, ki]
+  machine_learning:
+    band: explicit_ai
+    rationale: Learning-based computational methods.
+    aliases: [machine learning, maschinelles lernen, maschinellen lernens, maschinenlernen, supervised learning, supervised machine learning, überwachtes lernen, ueberwachtes lernen, unsupervised learning, unüberwachtes lernen, semi supervised learning, self supervised learning, ml]
+  neural_deep_learning:
+    band: explicit_ai
+    rationale: Neural models and deep learning methods.
+    aliases: [deep learning, neural network, neural networks, neuronales netz, neuronale netze, neuronale netzwerke, convolutional neural network, recurrent neural network, graph neural network, deep neural networks, cnn, rnn]
+  generative_models:
+    band: explicit_ai
+    rationale: Generative learned models and language-model applications.
+    aliases: [generative ai, generative ki, generative künstliche intelligenz, generative artificial intelligence, large language model, large language models, großes sprachmodell, große sprachmodelle, foundation model, foundation models, diffusion model, diffusion models, retrieval augmented generation, llm, llms, rag]
+  language_speech:
+    band: explicit_ai
+    rationale: Explicit language and speech processing methods; generic voice products are not included.
+    aliases: [natural language processing, natürliche sprachverarbeitung, natuerliche sprachverarbeitung, natural language understanding, sentiment analysis, sentimentanalyse, automatic speech recognition, automatische spracherkennung, speech recognition, text to speech, named entity recognition, spracherkennung, nlp, asr, tts]
+  computer_vision:
+    band: explicit_ai
+    rationale: Machine perception; generic image editing is not included.
+    aliases: [computer vision, machine vision, maschinelles sehen, object detection, objekterkennung, image recognition, bilderkennung, semantic segmentation, semantische segmentierung, visual recognition]
+  predictive_learning:
+    band: explicit_ai
+    rationale: Predictive methods explicitly tied to learned statistical models.
+    aliases: [predictive machine learning, machine learning prediction, lernbasierte prognose, random forest, gradient boosting, support vector machine, anomaly detection model, learned forecasting]
+  reinforcement_learning:
+    band: explicit_ai
+    rationale: Learning policies through rewards and interaction.
+    aliases: [reinforcement learning, bestärkendes lernen, bestaerkendes lernen, deep reinforcement learning, policy gradient]
+  model_operations:
+    band: explicit_ai
+    rationale: Infrastructure explicitly for learned model training or deployment.
+    aliases: [mlops, machine learning operations, model serving, model inference, modellinferenz, model fine tuning, fine tuning language models, training neural networks, deployment of machine learning, ai model deployment]
+  robotics_autonomy:
+    band: adjacent
+    rationale: Plausibly AI-related engineering, not proof of learned models.
+    aliases: [robotics, robotik, autonomous systems, autonome systeme, autonomous driving, autonomes fahren, autonomous robots, autonome roboter, sensor fusion, sensorfusion, robotic perception, mobile robotics, mobile robotik, intelligent automation, intelligente automatisierung]
+  analytics_enabling:
+    band: adjacent
+    rationale: Adjacent analytics, engineering and compute enabling AI activity.
+    aliases: [data science, predictive analytics, predictive maintenance, vorausschauende wartung, advanced analytics, edge ai, ai accelerator, ai infrastructure, ki infrastruktur, neural processing unit, gpu computing, high performance computing]
+  generic_technology:
+    band: ambiguous
+    rationale: Broad technical/marketing language; never explicit AI on its own.
+    aliases: [automation, automatisierung, optimization, optimierung, smart, intelligent, digitalization, digitalisierung, analytics, datenanalyse, data analysis, algorithm, algorithmus, simulation, software, cloud, big data]

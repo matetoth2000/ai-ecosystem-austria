@@ -8,7 +8,9 @@ import hashlib
 import logging
 import re
 import sqlite3
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -36,6 +38,17 @@ ERROR_STATUSES = {
     "connection_error",
     "other_error",
 }
+
+
+@contextmanager
+def measure_stage(timings: dict[str, float] | None, name: str):
+    """Record elapsed stage time, including failed attempts and lock waits."""
+    started = time.perf_counter()
+    try:
+        yield
+    finally:
+        if timings is not None:
+            timings[name] = timings.get(name, 0.0) + time.perf_counter() - started
 
 
 @dataclass(frozen=True)
@@ -309,7 +322,7 @@ def existing_successful_scrape(
     discovered_page_id: int | None = None,
 ) -> sqlite3.Row | None:
     if discovered_page_id is not None:
-        return connection.execute(
+        existing = connection.execute(
             """
             SELECT scraped_page_id, html_path, scrape_status
             FROM scraped_pages
@@ -319,6 +332,8 @@ def existing_successful_scrape(
             """,
             (discovered_page_id,),
         ).fetchone()
+        if existing is not None:
+            return existing
     if candidate_page_id is None:
         return None
     return connection.execute(
@@ -464,17 +479,19 @@ def fetch_candidate_page(
     retry_count: int,
     user_agent: str,
     session: requests.Session | None = None,
+    timings: dict[str, float] | None = None,
 ) -> FetchResult:
     active_session = session or requests.Session()
     fetched_at = utc_now_iso()
     try:
-        response = request_with_retries(
-            active_session,
-            candidate.url,
-            timeout_seconds,
-            retry_count,
-            user_agent,
-        )
+        with measure_stage(timings, "download"):
+            response = request_with_retries(
+                active_session,
+                candidate.url,
+                timeout_seconds,
+                retry_count,
+                user_agent,
+            )
     except requests.RequestException as error:
         return FetchResult(
             candidate_page_id=candidate.candidate_page_id,
@@ -551,9 +568,11 @@ def fetch_candidate_page(
             acquisition_run_id=acquisition_run_id,
         )
 
-    metadata = extract_html_metadata(response.content, final_url)
-    html_path = html_storage_path(project_root, candidate.domain, candidate.normalized_url)
-    save_compressed_html(html_path, response.content)
+    with measure_stage(timings, "html_processing"):
+        metadata = extract_html_metadata(response.content, final_url)
+    with measure_stage(timings, "html_storage"):
+        html_path = html_storage_path(project_root, candidate.domain, candidate.normalized_url)
+        save_compressed_html(html_path, response.content)
     return FetchResult(
         candidate_page_id=candidate.candidate_page_id,
         discovered_page_id=candidate.discovered_page_id,
