@@ -4,12 +4,17 @@ This file records completed implementation milestones. Future Codex milestones s
 Keep milestone/status entries in chronological order, oldest to newest. Append new
 updates below existing entries; preserve implementation order within the same date.
 
-Current direction (2026-09-16): Milestone 5 prioritizes company AI-promise
-modeling. Further page-ranker optimization is paused. The first grouped company
-model comparison and one-time internal-holdout evaluation are complete. Next:
-**Generalization and Independent Validation Planning**, not production exclusion.
-See the [pivot and artifact-status record](calibration_methodology.md#2026-09-12-company-level-pivot).
-Earlier next-step recommendations below describe their dated checkpoints.
+Current overview (2026-11-12): company-scorer validation and its analysis are
+complete. The company models and three evaluation policies remain frozen. The
+user chose the $200-scenario `cleaned_grounded_combined` cutoff
+`-0.10212121864474141` (include ties) for scored-sample profiling. This is not a
+guaranteed $200 spending cap; each run needs an explicit spending allowance.
+Wider deployment scale and budget remain undecided. Wider
+acquisition, final LLM ecosystem mapping and optional network construction remain
+future work. See the [completed validation and limitations](calibration_methodology.md#2026-10-22-independent-company-scorer-validation-milestone-55e)
+and the [current workflow and repository map](../README.md).
+The entries below are historical milestones. Their next-step recommendations
+describe dated checkpoints, not the current execution plan.
 
 ## 2026-06-10 — Milestone 3A.5g.1: Ecosystem-Relevance Prompt Upgrade
 
@@ -2717,3 +2722,325 @@ training, or pipeline execution was performed.
   The complete unittest suite passed (354 tests). Changes were checked for
   whitespace errors and staged by explicit reviewed paths. No pipeline runs,
   model inference, API calls or research-data migration were performed.
+
+## 2026-11-06: Repository Organization and Documentation Cleanup
+
+- Worked on `chore/repository-cleanup`. Replaced the outdated README with the
+  implemented acquisition/extraction/frozen-scoring/profiling workflow, verified
+  CLI examples, installation requirements, repository map and local-artifact
+  preservation boundaries. Distinguished reusable sample processing from the
+  fixed pilot/validation workflows. Updated only this document's opening overview
+  and appended this entry; all historical milestone entries remain unchanged.
+- Recorded completed validation and the still-undecided deployment scale, final
+  screening policy and budget, linking the existing methodology rather than
+  repeating its results. Documented the undeclared `jsonschema` requirement,
+  transitive modeling dependencies, missing lockfile, tokenizer-cache requirement
+  and existing path/storage assumptions without changing dependency declarations
+  or pipeline behavior.
+- Rechecked tracked source, tests, configuration, notebooks and documentation for
+  references before removing 16 empty scaffold files: the five zero-cell
+  notebooks numbered 01-05, two newline-only root prompt files, the two
+  `app/{llm,scraping}/.gitkeep` files, and newline-only `__init__.py` files in
+  `src/ai_ecosystem/{chunking,cleaning,evaluation,llm,network,retrieval,scraping}/`.
+  Removed the now-empty root `prompts/`, `app/llm/`, `app/scraping/` and untracked
+  empty `tools/` directories. Ignored bytecode caches and `app/.DS_Store` were
+  preserved; the remaining `app/` directory therefore still exists locally.
+- Kept all substantive modules and package markers in populated packages,
+  versioned prompts/schemas (including identical contract-specific schemas),
+  model bundles, datasets, historical pilots, experiment caches, partial/final
+  predictions and superseded reports. Imports, serialization, resume contracts
+  and provenance make those unsafe or outside this ticket's removal scope.
+  Empty extraction output directories remain because configuration references
+  them. This is organizational cleanup, not a corpus-storage reclamation.
+- Verification: README links/anchors and command modules/options checked against
+  files and parser source; deleted files confirmed against HEAD as zero-cell
+  notebooks or newline-only placeholders; Python import inspection found no
+  dependencies on removed packages; `git diff --check` passed. The full unittest
+  suite ran 354 tests: 347 passed, seven errored and none failed assertions or
+  skipped. A focused 42-test rerun with HTTP explicitly blocked reproduced all
+  seven errors at tiktoken's uncached `o200k_base` encoding load. The offline
+  environment could not download that public encoding file; no dependency,
+  tokenizer or test behavior was changed to hide this setup limitation.
+- Preserved the unrelated untracked
+  `reports/tables/AI_company_cutoff_dashboard.xlsx`, verifying its SHA-256 was
+  unchanged. No production pipeline run, model inference on research data, API
+  call, research-data deletion/move, commit or push was performed. Synthetic and
+  mocked unit-test workflows used temporary fixtures. Final policy/scale choices,
+  dependency packaging and artifact portability remain outside this ticket.
+
+## 2026-11-11: Step-by-Step Company Batch Guide
+
+- Added [Run one company acquisition batch](run_one_batch.md), prominently linked
+  near the start of the README. The guide uses
+  `independent_validation_v1_batch_0001` consistently and separates processing an
+  existing registered batch from one-time pool creation and later extension.
+- Documented environment/database/model/context prerequisites, sample inspection,
+  automatic pool/batch registration, discovery, acquisition, extraction and frozen
+  scoring in execution order. Each step describes existing output/completion
+  signals, retry behavior and overwrite restrictions checked against source.
+- Explained the validation-specific development exclusions in the pool builder,
+  append-only revisions and interrupted-artifact limitations. Distinguished local
+  company acquisition batches from OpenAI Batch jobs; neither the sampler nor the
+  saved validation policies are an approved full-population deployment design.
+- Recorded that completion can still include failed/deferred pages or unscored
+  companies, success-skip checks do not verify evidence files exist, generic
+  extraction batch IDs are absent from the legacy run sample field, and scoring
+  has no incremental resume or output overwrite option. Applying a deployment
+  cutoff and preparing/submitting final-population profiles remain unsupported as
+  a general workflow; the guide links existing validation documentation separately.
+- Verification: checked command modules, arguments, parser choices, output text,
+  storage paths, registry fields and retry/write paths against source; checked
+  SQLite CLI inspection flags through side-effect-free help; checked README/guide
+  links and anchors and `git diff --check`. No executable code changed and no
+  pipeline, registration, API call or data-changing command was run. Historical
+  status entries, prior cleanup changes and the unrelated dashboard spreadsheet
+  were preserved. No commits or pushes were made.
+
+## 2026-11-11: Reproducible Installation and Dependency Verification
+
+- Continued on `chore/repository-cleanup`, preserving the previous organization
+  and batch-guide changes and the unrelated dashboard spreadsheet. Declared
+  `jsonschema>=4,<5` in base runtime dependencies. Added a `pipeline` extra with
+  the existing numerical/plotting requirements plus explicit `joblib>=1.5,<2`
+  and `threadpoolctl>=3,<4`; `analysis` includes `pipeline` and notebook/report
+  tooling. Audited direct third-party source imports. The optional python-dotenv
+  import retains its existing built-in fallback and is not a hard dependency.
+  No pipeline Python implementation, scoring logic or dependency version in the
+  working `.venv` was changed.
+- Added `constraints/macos-arm64-py311.txt`: 131 exact pins derived from the
+  working environment's marker-evaluated dependency closure of base + pipeline +
+  analysis, plus pip/setuptools for editable builds. This is not an unrestricted
+  environment freeze, hashed wheel lock or Linux compatibility claim. Reference
+  platform: macOS 15.0 arm64, CPython 3.11.14. The numerical stack exactly matches
+  both saved cleanup/tuning environment identities: NumPy 2.4.6, pandas 2.3.3,
+  SciPy 1.17.1, scikit-learn 1.9.0, PyArrow 20.0.0 and joblib 1.5.3;
+  threadpoolctl remains the working version 3.6.0.
+- Verified this installation procedure in a separate temporary virtual environment
+  created with `/opt/homebrew/opt/python@3.11/bin/python3.11 -m venv`, leaving the
+  research `.venv` alone. The README's reusable equivalent is:
+
+  ```bash
+  python3.11 -m venv venv/repro
+  source venv/repro/bin/activate
+  python -m pip install --no-cache-dir --disable-pip-version-check --constraint constraints/macos-arm64-py311.txt pip==25.3 setuptools==80.9.0
+  python -m pip install --no-cache-dir --disable-pip-version-check --no-build-isolation --constraint constraints/macos-arm64-py311.txt -e '.[analysis]'
+  python -m pip check
+  export TIKTOKEN_CACHE_DIR="$PWD/.cache/tiktoken"
+  python -c 'import tiktoken; print(tiktoken.get_encoding("o200k_base").name)'
+  ```
+
+  Installation succeeded with 132 distributions including the project; all 131
+  constrained versions matched, with zero unconstrained or changed dependency
+  versions. `pip check` returned `No broken requirements found.` Pinned installed
+  setuptools and `--no-build-isolation` avoid an unconstrained editable-build
+  environment. Network access to the package index is still required; wheel
+  availability on other platforms/Python versions was not tested.
+- Populated only the required public asset
+  `https://openaipublic.blob.core.windows.net/encodings/o200k_base.tiktoken`
+  in the ignored persistent `.cache/tiktoken/` directory. Its 3,613,922 bytes
+  match SHA-256
+  `446a9538cb6c348e3516120d7c08b09f57c36495e2acfffe59a5bf8b0cfb1a2d`.
+  A fresh-interpreter offline encoding/decoding check passed with the real cached
+  tokenizer. Updated README and batch-guide setup to use constraints, explicit
+  dependencies and the persistent cache; removed the manual jsonschema workaround.
+  No model or token-count API call was made.
+- Fresh-environment smoke checks passed for all 15 non-optional direct third-party
+  imports and nine `--help` interfaces: sample listing/import, homepage discovery,
+  acquisition, extraction, pool builder, frozen sample scoring, profile pilot,
+  validation Batch adapter and validation Batch preparation. Only help/imports
+  were executed, not their pipeline operations.
+- Full unittest verification: **354 tests passed, zero failures, zero errors and
+  zero skips**; unittest run time 45.678 seconds (50.320 seconds including discovery
+  and harness overhead). The seven earlier tokenizer-dependent failures passed
+  using the actual cached encoding without changing/skipping their assertions or
+  replacing the tokenizer. All tests ran with network access denied and writes to
+  the repository blocked; fixture outputs and Matplotlib cache were temporary.
+  Five saved-artifact regression checks ran because local company-modeling,
+  selection/recovery, usage and holdout artifacts were present; a public checkout
+  without those artifacts cannot reproduce those checks and their existing skip
+  behavior remains unchanged. Synthetic fixture models were the only test fits.
+- Although numerical versions did not change, repeated the existing frozen-bundle
+  reload/parity procedure using saved development inputs and final-fit predictions,
+  with no source-database use or refitting. Both `reference_logistic_size` and
+  `cleaned_grounded_combined` matched all **649** rows exactly, maximum absolute
+  score difference **0.0**, including identical NaN/unscored behavior for 173
+  NO_EVIDENCE companies and scores for 476 PROCESSABLE companies. Model completion,
+  context and saved final-fit checkpoint hashes verified. Parity CSVs were written
+  only to the temporary verification directory.
+- Retained verification summaries/logs/temporary parity CSVs under
+  `/private/tmp/ai-ecosystem-install-wl8g3g7y/`; removed only the task-created
+  temporary environment, synthetic fixtures and font cache afterward. Working
+  `.venv` distribution versions, dashboard SHA-256 and production database/sidecar
+  sizes and modification times were unchanged. Documentation links/anchors,
+  dependency declarations and `git diff --check` were checked.
+- Installation is ready on the tested Mac, but the overnight 100-company trial
+  has not been run or capacity-validated. Free space after temporary cleanup was
+  approximately 5.9 GiB, below the earlier readiness checkpoint's 8 GB floor even
+  before its transient reserve; storage headroom needs review before treating the
+  trial as operationally ready. No live acquisition/extraction, production scoring,
+  research-model retraining, LLM calls, Docker/cloud setup, commit or push occurred.
+
+## 2026-11-12: Milestone 5.5g - End-to-End Profiling of a Scored Company Sample
+
+- Used the next unused suffix after 5.5f for this implementation. The user chose
+  the existing **$200-scenario** policy for forthcoming scored-sample profiling:
+  `cleaned_grounded_combined >= -0.10212121864474141`, including ties. This is an
+  explicit choice of an already frozen selection rule, not retraining, a new
+  threshold search, an established population-performance claim or a guaranteed
+  $200 spending cap. The default source is
+  `data/interim/calibration/company_score_analysis/independent_validation_holdout_v1/policy_freeze.json`,
+  SHA-256 `698413a2fdfa78ac7493ef96774cb23e408e39ea81235060d54f14bb854c4332`.
+- Added `ai_ecosystem.calibration.run_company_profile_batch` with explicit run
+  directory and `prepare`, `dry-run`, `submit`, `status`, `ingest`, `report` and
+  `reconcile` commands. Preparation accepts a registered sample ID, its score CSV,
+  a per-run spending allowance and a current user-declared queue allowance. It
+  verifies membership and score-row consistency, compares Decimal values against
+  the exact frozen cutoff, and archives the policy value/hash, scores, selected/
+  nonselected reasons and source fingerprint. NO_EVIDENCE, missing score rows and
+  missing scores remain unlabelled; below-cutoff exclusion is not an EXCLUDE label.
+- Reused unlabelled source loading, `package_company`, the current v4 prompt/schema,
+  existing ordering/deduplication/utility-page rules, 250k local evidence allocation,
+  8k output allowance, configured Luna/low-reasoning settings, request-body builder,
+  Python profile validation/label derivation, file packer and cost calculations.
+  Profiling preparation needs current source evidence and the saved policy, not
+  historical company lists, selection/holdout splits or overlap-review decisions.
+  Earlier scoring still has its documented frozen-model/context prerequisites.
+- Preparation/review are offline: a valid persistent o200k_base cache is required
+  when requests need tokenization, and a missing/invalid asset fails rather than
+  downloading. Counts are local proxies, not verified Luna token counts; no model
+  token-count endpoint was added or called. Reports distinguish input/output cost
+  estimates, a 20%-higher-input sensitivity, recorded-usage calculations and unknown
+  costs. Reasoning tokens are already included in output and are not double-counted.
+  Prices are the existing recorded schedule, not invoice-confirmed current charges.
+- Extended the existing validation Batch engine with format dispatch and a separate
+  result destination for sample runs. Reused locks, persisted upload/job IDs, remote
+  duplicate checks, queue checks, per-file continuation, ambiguous-create
+  reconciliation and immutable downloads. Submission requires `--confirm-paid` and
+  passes the run's frozen spending/queue estimates first. The spending guard is
+  local and estimated, not provider-enforced. Zero-request runs do not create an
+  API client. Interrupted preparation can reuse compatible checkpoints with
+  `--resume`; changed sources/identities and incompatible frozen files fail closed.
+- Final `report.md`, `report.json` and `company_results.csv` include all sample
+  members, selection reasons, evidence coverage/omissions, validation outcomes,
+  unresolved selected companies, labels for valid responses, usage and calculated/
+  unknown costs. Pending, missing, failed, refused or invalid responses are never
+  silently relabelled or automatically resubmitted. Batch acceptance/completion
+  does not establish complete coverage or an overnight completion promise.
+- Extended the README's prominent link and `docs/run_one_batch.md` into the full
+  discovery → acquisition → extraction → scoring → exact-cutoff preparation →
+  dry-run → paid submission → status → ingestion/report walkthrough. It distinguishes
+  offline commands, website requests and paid/external API commands; explains
+  multi-file retries/reconciliation and retains historical workflow documentation.
+  The guide's historical example batch ID must be replaced for a different trial;
+  its $2/1-billion-token allowance examples are explicit inputs, not account facts.
+- Verification: added 18 focused fixture/mock tests covering membership, duplicates/
+  inconsistent rows, exact cutoff/ties, unscored and empty samples, utility-only
+  evidence, zero API activity, real-tokenizer request/package parity, missing-cache
+  refusal, partial/completed preparation resume, tampering/source changes, spending/
+  queue/paid guards, duplicate/multi-file/ambiguous submissions, unknown/duplicate
+  result IDs, changed downloads, pending/missing/invalid/API-error outcomes and
+  recorded usage/costs. The **full 372-test suite passed with zero failures, errors
+  or skips** (25.175 seconds test time; 28.205 seconds including discovery/harness).
+  The real cached tokenizer was used; network and repository writes were denied,
+  with only synthetic fixtures/outputs in temporary storage. Existing local-artifact
+  regression checks ran rather than skipping.
+- A separate read-only regression validated all **1,081** historical finalized
+  requests in five files and preserved their **865 selection / 216 holdout** split.
+  New CLI help, documentation command flags/subcommands, links/anchors, Python
+  syntax and `git diff --check` were checked. Temporary verification evidence is
+  under `/private/tmp/ai-profile-sample-rgpwjk58/`.
+- No 100-company trial, website acquisition, extraction, token-count/model call,
+  upload, real Batch submission, research-model retraining, production scoring,
+  production-data change, commit or push occurred. Frozen scoring/feature modules,
+  model bundles, contracts, historical results, earlier cleanup changes and the
+  unrelated dashboard spreadsheet were preserved; production database/sidecar
+  sizes and modification times were unchanged. Live account capacity/budget and
+  actual request/billing behavior remain unverified until an explicit user-run
+  trial. No known implementation blocker remains for a correctly prepared local
+  sample with its required artifacts and explicit allowances.
+
+## 2026-11-19: Milestone 5.5h - Fresh 100-Company Trial Registration
+
+- Registered **`fresh_acquisition_trial_20261119_v1`**, a standalone company
+  acquisition sample with **100 legal companies and 100 distinct normalized
+  domains**, seed **`20261119`**. Stopped after registration; discovery and all
+  subsequent processing remain for the user to run.
+- The existing pool `create`/`extend` modes do not enforce distinct domains,
+  validation exclusion or fresh website history. The domain CSV importer cannot
+  register exact company membership, and the enrichment sampler uses AI-focused
+  taxonomy. Reported this gap before adding the narrow `trial` mode to
+  `ai_ecosystem.calibration.build_acquisition_pool`, with implementation in
+  `src/ai_ecosystem/calibration/fresh_trial_registration.py`. Existing historical
+  pool creation/extension behavior was preserved.
+- Selection method: deterministic SHA-256 ranking of eligible domains using the
+  fixed seed, then a separate seeded ranking chooses one company per domain.
+  **No model scores, AI keywords or sector quotas** enter this selection. Reused
+  the frozen 649-company development inventory and website-family exclusions;
+  additionally excluded all existing sample/calibration company IDs, domains
+  reserved by any sample, all recorded discovery/acquisition hosts (including
+  failed attempts and known URL/redirect aliases), existing raw-HTML domain
+  directories and companies with additional validated primary website aliases.
+  Required names and registered eligible normalized domains. The resulting
+  frame had **162,919 companies / 143,875 domains**; sector is metadata only.
+  Known local freshness is verified; unseen live redirects remain unknowable
+  without discovery and were not queried.
+- Saved the exact ordered membership and provenance under
+  `data/interim/calibration/acquisition_trials/fresh_acquisition_trial_20261119_v1/`:
+  `companies.csv` and `audit.json` (local, ignored by Git). The audit records seed,
+  source hashes, exclusion counts, history/frame hashes and selection SHA-256
+  **`2e1c1f6b090cedd820b6d1454b4a4f6b219a8bd3d27f314e422f3079c225a514`**.
+  Registration inserted one `sample_sets` row, 100 `sample_companies` rows and
+  100 `sample_domains` rows into `db/ai_ecosystem.sqlite`; existing IDs and artifact
+  directories are never overwritten. A read-only preview is available with
+  `--dry-run`; failed transactions can leave new orphan artifacts, never an
+  assumed successful registration.
+- Independent read-only verification matched saved ordered CSV membership to
+  `discovery_utils.get_sample_company_ids` / `get_sample_domains`, and matched
+  the exact company set through `score_company_sample.sample_company_ids`.
+  Confirmed 100/100 uniqueness, development/previous-sample exclusion, no known
+  discovery/acquisition host history, no existing raw-HTML domain directories,
+  and no additional primary aliases that would expand scoring website scope.
+  Existing acquisition/extraction SQL selectors returned **zero candidates**.
+  All **18 historical sample registrations and their membership rows**, all
+  **21 historical acquisition-pool artifact files**, and discovery/acquisition/
+  extraction/calibration table row counts were unchanged.
+- Verification: **4 new fixture tests plus 9 existing acquisition-pool regression
+  tests passed** (13 total, 2.394 seconds; zero failures/errors/skips), covering
+  deterministic read-only preview, exact downstream membership, freshness/alias
+  exclusions, no overwrite, insufficient capacity and transaction rollback.
+  CLI help/source flags, documentation links and `git diff --check` were checked.
+  Verification evidence is in `/private/tmp/fresh-trial-register-gfefs989/`.
+- Updated `docs/run_one_batch.md` with the necessary fresh-trial registration
+  procedure, its immutability/retry limitations, and this actual registered ID
+  consistently throughout the downstream walkthrough. Historical validation-pool
+  commands remain explicitly historical and were not executed.
+- Latest measured free space: **10,225,868,800 bytes = 10.23 GB / 9.52 GiB**.
+  This exceeds the documented **8 GB free-space floor** but leaves only **2.23 GB**
+  before reaching it, below the separate **4 GB working/headroom reserve**.
+  Earlier readings during this task were below the floor; available space changed
+  without this task deleting anything. Recheck and restore headroom before the
+  user's acquisition trial; registration is not a storage-readiness approval.
+- No websites contacted, pipeline stages executed, scores computed, API calls,
+  uploads, paid submissions, historical data deletion, commits or pushes. Earlier
+  unrelated changes and the dashboard spreadsheet were preserved. Git changes
+  remain uncommitted on `chore/repository-cleanup`.
+
+## 2026-11-27: Milestone 5.5i - Mac Trial Closeout
+
+- Reconciled the final report for `fresh_acquisition_trial_20261119_v1` with all
+  **100 registered companies and 100 distinct domains**. Of the 63 processable
+  companies, 5 met the frozen cutoff `-0.10212121864474141` and 58 scored below
+  it. The remaining 37 had `NO_EVIDENCE`. All 95 unselected companies have blank
+  profile labels.
+- The saved submission record shows one completed Batch with five requests.
+  The submitted file hash, five request IDs, saved responses and report rows
+  matched. All five profiles passed validation: **2 KEEP, 3 EXCLUDE, zero
+  unresolved**. The report and raw responses remain local under
+  `data/interim/calibration/company_profiles/fresh_acquisition_trial_20261119_v1_200scenario_v1/`.
+- Recalculated the usage cost from all five saved responses using the recorded
+  Luna Batch rates. **$0.042834265 USD** covers 680,393 input tokens and 3,891
+  output tokens, including 1,238 reasoning tokens. All five had known usage.
+  This is a calculated cost from reported usage. It has not been reconciled
+  against an invoice.
+- Updated the return-later walkthrough with the Mac environment activation,
+  tokenizer cache and run directory for a fresh terminal.

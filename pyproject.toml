@@ -9,6 +9,7 @@ description = "Mapping the Austrian AI Ecosystem Using Web Data and NLP"
 requires-python = ">=3.11"
 dependencies = [
     "beautifulsoup4",
+    "jsonschema>=4,<5",
     "openai",
     "pyyaml",
     "requests",
@@ -17,17 +18,22 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-analysis = [
-    "ipykernel>=6,<7",
-    "jupyterlab>=4,<5",
+pipeline = [
+    "joblib>=1.5,<2",
     "matplotlib>=3.9,<4",
-    "nbconvert>=7,<8",
-    "nbformat>=5,<6",
     "numpy>=2,<3",
     "pandas>=2.2,<3",
     "pyarrow>=17,<21",
     "scikit-learn>=1.5,<2",
     "scipy>=1.14,<2",
+    "threadpoolctl>=3,<4",
+]
+analysis = [
+    "ai-ecosystem-austria[pipeline]",
+    "ipykernel>=6,<7",
+    "jupyterlab>=4,<5",
+    "nbconvert>=7,<8",
+    "nbformat>=5,<6",
     "seaborn>=0.13,<1",
 ]
 

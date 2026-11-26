@@ -43,6 +43,9 @@ def read_jsonl(path: Path) -> list[dict]:
 
 def validate_run(directory: Path) -> tuple[dict, dict[str, dict], dict[str, dict]]:
     summary = json.loads((directory / "summary.json").read_text(encoding="utf-8"))
+    if summary.get("workflow") == "scored_company_sample_v1":
+        from .run_company_profile_batch import validate_prepared
+        return validate_prepared(directory)
     identity = json.loads((directory / "preparation_identity.json").read_text(encoding="utf-8"))
     if (summary["included"], summary["quarantined"], summary["skipped_no_usable_package"],
             summary["no_evidence"], summary["unresolved"], summary["reviewed_inclusions"]) != (1081, 2, 1, 416, 0, 64):
@@ -180,10 +183,15 @@ def _submit_locked(root: Path, directory: Path, *, file_name: str | None,
     if not confirm_paid:
         raise ValueError("Paid submission requires --confirm-paid")
     summary, _, files = validate_run(directory)
-    if summary["queue_headroom_tokens"] >= QUEUE_ALLOWANCE:
+    queue_allowance = summary.get("queue_allowance_tokens", QUEUE_ALLOWANCE)
+    if summary.get("workflow") == "scored_company_sample_v1" and summary["submission_blocked"]:
+        raise ValueError("Submission blocked: " + "; ".join(summary["blockers"]))
+    if summary["queue_headroom_tokens"] >= queue_allowance:
         raise ValueError("Estimated queue volume exceeds user-confirmed allowance")
     if file_name is not None and file_name not in files:
         raise ValueError("Unknown finalized Batch file")
+    if not files:
+        return []  # Empty sample/selection never creates a client or calls the API.
     identity = json.loads((directory / "preparation_identity.json").read_text(encoding="utf-8"))
     client = client or client_for(root)
     results = []
@@ -212,7 +220,7 @@ def _submit_locked(root: Path, directory: Path, *, file_name: str | None,
         queued_ours = sum(int(files[b["metadata"]["file_name"]]["estimated_input_tokens"] * QUEUE_HEADROOM)
                           for b in remote if b.get("status") in ACTIVE and (b.get("metadata") or {}).get("run_hash") == metadata["run_hash"]
                           and b["metadata"].get("file_name") in files)
-        if queued_ours + int(item["estimated_input_tokens"] * QUEUE_HEADROOM) >= QUEUE_ALLOWANCE:
+        if queued_ours + int(item["estimated_input_tokens"] * QUEUE_HEADROOM) >= queue_allowance:
             raise ValueError("Insufficient user-confirmed queue headroom")
         if state["phase"] == "planned":
             atomic_json(path, state)
@@ -254,6 +262,8 @@ def reconcile(root: Path, directory: Path, name: str, *, confirm_remote_absent: 
 
 def status(root: Path, directory: Path, *, client: Any | None = None) -> list[dict]:
     _, _, files = validate_run(directory)
+    if not files:
+        return []
     client = client or client_for(root)
     output = []
     for name in files:
@@ -294,6 +304,10 @@ def preserve_download(path: Path, content: str) -> None:
 
 def ingest(root: Path, directory: Path, *, client: Any | None = None) -> dict:
     summary, records, files = validate_run(directory)
+    deployment = summary.get("workflow") == "scored_company_sample_v1"
+    if deployment and not files:
+        from .run_company_profile_batch import report
+        return report(directory)
     config = json.loads((directory / "config_snapshot.json").read_text(encoding="utf-8"))
     schema = json.loads((directory / "schema_snapshot.json").read_text(encoding="utf-8"))
     client = client or client_for(root)
@@ -328,7 +342,8 @@ def ingest(root: Path, directory: Path, *, client: Any | None = None) -> dict:
             record = records[cid]
             if line != record["batch_line"]:
                 raise ValueError("Result does not match frozen request")
-            destination = directory / ("selection_results" if record["split"] == "selection" else "holdout_results")
+            destination = directory / ("results" if deployment else
+                                       "selection_results" if record["split"] == "selection" else "holdout_results")
             destination.mkdir(exist_ok=True)
             result_path = destination / f"{cid}.json"
             if result_path.exists():
@@ -349,9 +364,13 @@ def ingest(root: Path, directory: Path, *, client: Any | None = None) -> dict:
                 parsed = parse_response(response["body"], json.loads(line["body"]["input"][-1]["content"]),
                                         schema, contract_id=config["contract_id"],
                                         mapping_version=config["mapping_version"])
-            atomic_json(result_path, {"company_id": cid, "split": record["split"], "custom_id": custom_id,
+            atomic_json(result_path, {"company_id": cid,
+                                      **({} if deployment else {"split": record["split"]}), "custom_id": custom_id,
                                       "request_hash": record["request_hash"], "batch_id": batch["id"],
                                       "quote_validation_version": summary["quote_validation_version"], **parsed})
+    if deployment:
+        from .run_company_profile_batch import report
+        return report(directory)
     selection = [json.loads(path.read_text(encoding="utf-8")) for path in
                  sorted((directory / "selection_results").glob("*.json"))] if (directory / "selection_results").exists() else []
     holdout_count = len(list((directory / "holdout_results").glob("*.json"))) if (directory / "holdout_results").exists() else 0
