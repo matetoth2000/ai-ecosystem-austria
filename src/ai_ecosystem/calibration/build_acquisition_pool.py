@@ -1,4 +1,4 @@
-"""Create or extend a frozen-frame company pool; never run acquisition stages."""
+"""Create/extend a frozen-frame pool or register one fresh trial; never run acquisition stages."""
 from __future__ import annotations
 
 import argparse
@@ -234,14 +234,27 @@ def build_pool(mode, pool_id, target_size, *, seed=None, database=None, root=Non
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode', choices=('create', 'extend'))
+    parser.add_argument('mode', choices=('create', 'extend', 'trial'))
+    parser.add_argument('--sample-id', help='Distinct ID for one fresh trial (trial mode only)')
+    parser.add_argument('--dry-run', action='store_true', help='Read-only trial selection preview (trial mode only)')
     parser.add_argument('--pool-id', default='independent_validation_v1')
-    parser.add_argument('--target-size', type=int, help='Default 1500 for create; required for extend')
-    parser.add_argument('--seed', type=int, help=f'Creation seed (default {DEFAULT_SEED}); fixed on extension')
+    parser.add_argument('--target-size', type=int, help='Default 1500 for create, 100 for trial; required for extend')
+    parser.add_argument('--seed', type=int, help=f'Creation seed (default {DEFAULT_SEED}); required for trial; fixed on extension')
     parser.add_argument('--database', help='Existing initialized SQLite database')
-    parser.add_argument('--output-directory', help='New artifact directory (create only)')
-    parser.add_argument('--development-directory', help='Frozen 649-company dataset (create only)')
+    parser.add_argument('--output-directory', help='New artifact directory (create or trial only)')
+    parser.add_argument('--development-directory', help='Frozen 649-company dataset (create or trial only)')
     args = parser.parse_args()
+    if args.mode == 'trial':
+        if args.sample_id is None or args.seed is None:
+            parser.error('trial requires --sample-id and --seed')
+        from .fresh_trial_registration import register_fresh_trial
+        result = register_fresh_trial(args.sample_id, args.seed, database=args.database,
+            output_directory=args.output_directory, development_directory=args.development_directory,
+            target_size=args.target_size if args.target_size is not None else 100, dry_run=args.dry_run)
+        print(json.dumps(result, indent=2, sort_keys=True))
+        return
+    if args.sample_id is not None or args.dry_run:
+        parser.error('--sample-id and --dry-run apply only to trial mode')
     if args.mode == 'extend' and args.target_size is None:
         parser.error('--target-size is required for extension')
     result = build_pool(args.mode, args.pool_id, 1500 if args.target_size is None else args.target_size,
