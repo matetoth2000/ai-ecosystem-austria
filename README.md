@@ -5,6 +5,16 @@ frozen company scoring → evidence-grounded LLM profiling. Discovery prepares t
 URL inventory; SQLite records membership, page metadata and run provenance, while
 HTML, extracted evidence and research artifacts live in local files.
 
+## How one batch runs
+
+**Register a batch of companies → Discover URLs for their websites → Fetch HTML → Extract text and headings → Score each company → Send selected companies to the LLM for profiling.**
+
+- Companies that share a website can use the same evidence, and each company gets its own scoring outcome.
+- The standard acquisition run fetches eligible discovered URLs after removing duplicates, regardless of the older “retained” flag.
+- Companies scoring at or above the cutoff qualify for LLM profiling. Companies without enough evidence remain unscored.
+
+See the [batch runbook](docs/run_one_batch.md) for commands.
+
 **Start here: [Run one company batch, step by step](docs/run_one_batch.md)** —
 prerequisites, registered batches, optional pool setup, discovery, acquisition,
 extraction, frozen scoring, exact-cutoff evidence preparation and paid Batch
